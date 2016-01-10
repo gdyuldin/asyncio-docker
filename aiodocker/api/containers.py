@@ -6,6 +6,9 @@ from .errors import status_error
 class Container(JSONRoot, APIUnbound):
 
     def __init__(self, json=None, *, Id=None):
+        if json is None and Id is None:
+            raise ValueError()
+        
         self._json = json or {}
         if Id is not None:
             self.Id = Id
@@ -49,8 +52,24 @@ class Container(JSONRoot, APIUnbound):
     async def create(cls):
         pass
 
+    def __hash__(self):
+        return hash(self.Id)
+
+    def __eq__(self, other):
+        if isinstance(other, Container):
+            return self.Id == other.Id
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, Container):
+            return self.Id != other.Id
+        return NotImplemented
+
     def __repr__(self):
         return 'Container <%s>' % self.Id
+
+    def __str__(self):
+        return self.Id
 
 
 class Containers(list, APIUnbound):
