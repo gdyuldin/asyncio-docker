@@ -18,6 +18,9 @@ class BaseClient(object, metaclass=abc.ABCMeta):
     def resolve_url(self, url):
         pass
 
+    def request(self, method, url, **kwargs):
+        return aiohttp.request(method, self.resolve_url(url), **kwargs)
+
     def get(self, url, **kwargs):
         return aiohttp.get(self.resolve_url(url), **kwargs)
 
