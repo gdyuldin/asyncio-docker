@@ -10,7 +10,7 @@ class BaseClient(object, metaclass=abc.ABCMeta):
     def __init__(self, host, *, loop=None):
         self.host = host
         self.loop = loop or asyncio.get_event_loop()
-        self.connector = self.new_connector(self.host, self.loop)
+        self.connector = self.new_connector()
 
     @abc.abstractmethod
     def new_connector(self):
