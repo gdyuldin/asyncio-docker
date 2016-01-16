@@ -81,7 +81,7 @@ class Containers(list, APIUnbound):
 
         labels = labels or {}
         filters = filters or {}
-        
+
         for label, val in labels.items():
             filters['label'] = filters.get('label', []) + [
                 '%s=%s' % (label, val) if val else label
@@ -90,7 +90,7 @@ class Containers(list, APIUnbound):
         # Build query
         q = {}
         if filters:
-            q['filters'] = json.dump(filters)
+            q['filters'] = json.dumps(filters)
 
         # Reduce to query string
         q = ('?%s' % '&'.join(
