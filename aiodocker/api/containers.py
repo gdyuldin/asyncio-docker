@@ -2,13 +2,15 @@ from .registry import APIUnbound
 from .json import JSONRoot
 from .errors import status_error
 
+import json
+
 
 class Container(JSONRoot, APIUnbound):
 
     def __init__(self, json=None, *, Id=None):
         if json is None and Id is None:
             raise ValueError()
-        
+
         self._json = json or {}
         if Id is not None:
             self.Id = Id
@@ -75,8 +77,24 @@ class Container(JSONRoot, APIUnbound):
 class Containers(list, APIUnbound):
 
     @classmethod
-    async def list(cls):
-        async with cls.api.client.get('/containers/json') as r:
+    async def list(cls, filters=None, **labels):
+        filters = filters or {}
+        for label, val in labels.items():
+            filters['label'] = filters.get('label', []) + [
+                '%s=%s' % (label, val) if val else label
+            ]
+
+        # Build query
+        q = {}
+        if filters:
+            q['filters'] = json.dump(filters)
+
+        # Reduce to query string
+        q = ('?%s' % '&'.join(
+                '%s=%s' % (key, val) for key, val in filters.items()
+            ) if q else '')
+
+        async with cls.api.client.get('/containers/json%s' % q) as r:
             if r.status != 200:
                 raise status_error(r.status)
             return cls.api.Containers([
