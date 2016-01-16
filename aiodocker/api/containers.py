@@ -77,8 +77,11 @@ class Container(JSONRoot, APIUnbound):
 class Containers(list, APIUnbound):
 
     @classmethod
-    async def list(cls, filters=None, **labels):
+    async def list(cls, labels=None, filters=None):
+
+        labels = labels or {}
         filters = filters or {}
+        
         for label, val in labels.items():
             filters['label'] = filters.get('label', []) + [
                 '%s=%s' % (label, val) if val else label
