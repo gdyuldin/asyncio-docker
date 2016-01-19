@@ -1,83 +1,20 @@
 import aiohttp
 import json
-from json.decoder import JSONDecodeError
 
-from .registry import APIUnbound
-from .json import JSONRoot
-from .errors import status_error
-
-
-ATTACH = 'attach'
-COMMIT = 'commit'
-COPY = 'copy'
-CREATE = 'create'
-DESTROY = 'destroy'
-DIE = 'die'
-EXEC_CREATE = 'exec_create'
-EXEC_START = 'exec_start'
-EXPORT = 'export'
-KILL = 'kill'
-OOM = 'oom'
-PAUSE = 'pause'
-RENAME = 'rename'
-RESIZE = 'resize'
-RESTART = 'restart'
-START = 'start'
-STOP = 'stop'
-TOP = 'top'
-UNPAUSE = 'unpause'
-
-DELETE = 'delete'
-IMPORT = 'import'
-PULL = 'pull'
-PUSH = 'push'
-TAG = 'tag'
-UNTAG = 'untag'
+from aiodocker.api.base import BaseEntity
+from aiodocker.api.registry import APIUnbound
+from aiodocker.api.errors import status_error
+from aiodocker.api.constants.events import CONTAINER_EVENTS, IMAGE_EVENTS
 
 
-_container_events = (
-    ATTACH,
-    COMMIT,
-    COPY,
-    CREATE,
-    DESTROY,
-    DIE,
-    EXEC_CREATE,
-    EXEC_START,
-    EXPORT,
-    KILL,
-    OOM,
-    PAUSE,
-    RENAME,
-    RESIZE,
-    RESTART,
-    START,
-    STOP,
-    TOP,
-    UNPAUSE
-)
-
-_image_events = (
-    DELETE,
-    IMPORT,
-    PULL,
-    PUSH,
-    TAG,
-    UNTAG
-)
-
-
-class Event(JSONRoot, APIUnbound):
-
-    def __init__(self, json):
-        self._json = json
-
-    def get_json(self):
-        return self._json
+class Event(BaseEntity, APIUnbound):
 
     @property
     def container(self):
-        return self.api.Container(Id=self.id)
+        if self.status in CONTAINER_EVENTS:
+            return self.api.Container(Id=self.id)
+        else:
+            return None
 
     def __repr__(self):
         return '%s <%s>' % (self.status, self.id)
@@ -92,9 +29,8 @@ class EventsStream(APIUnbound):
         chunk = await self._stream.readline()
         if chunk is not None:
             try:
-                text = chunk.decode(encoding='UTF-8')
-                return self.api.Event(json.loads(text))
-            except JSONDecodeError:
+                return self.api.Event(**json.loads(chunk.decode(encoding='UTF-8')))
+            except json.JSONDecodeError:
                 raise StopAsyncIteration
 
 

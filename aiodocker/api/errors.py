@@ -28,4 +28,4 @@ def status_error(status):
     if status in _status_errors:
         return _status_errors[status]
     else:
-        return StatusUnknownError
+        return StatusUnknownError(status)

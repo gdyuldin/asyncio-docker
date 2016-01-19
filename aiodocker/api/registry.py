@@ -1,3 +1,5 @@
+import abc
+
 class APIRegistry(object):
 
     _types = []
@@ -16,7 +18,9 @@ class APIBound(object):
     pass
 
 
-class APIUnboundMeta(type):
+class APIUnboundMeta(abc.ABCMeta):
+
+    # Inherit from ABCMeta in order to avoid conflicts with AttrDict
 
     def __new__(mcls, name, bases, namespace):
         cls = super(APIUnboundMeta, mcls).__new__(mcls, name, bases, namespace)
