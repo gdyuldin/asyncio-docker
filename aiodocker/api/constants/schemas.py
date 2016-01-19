@@ -33,10 +33,7 @@ HOST_CONFIG = {
             'type': 'string'
         },
     },
-    'additionalProperties': True,
-    'required': [
-
-    ]
+    'additionalProperties': True
 }
 
 CONFIG = {
