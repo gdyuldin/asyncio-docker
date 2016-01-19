@@ -26,6 +26,19 @@ LABELS = {
     }
 }
 
+HOST_CONFIG = {
+    'type': 'object',
+    'properties': {
+        'NetworkMode': {
+            'type': 'string'
+        },
+    },
+    'additionalProperties': True,
+    'required': [
+
+    ]
+}
+
 CONFIG = {
     'type': 'object',
     'properties': {
@@ -136,6 +149,7 @@ CONFIG = {
             'description': "Signal to stop a container"
         },
         'Labels': LABELS,
+        'HostConfig': HOST_CONFIG
     },
     'additionalProperties': False,
     'required': [

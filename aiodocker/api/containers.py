@@ -67,7 +67,7 @@ class Container(BaseEntity, APIUnbound):
             if res.status != 204:
                 raise status_error(res.status)
 
-    async def create(self):
+    async def create(self, name=None):
         if 'Config' in self:
             Config = self.Config
         else:
@@ -76,8 +76,12 @@ class Container(BaseEntity, APIUnbound):
         Config = schema_extract(Config, CONFIG)
         validate(Config, CONFIG)
 
+        q = {}
+        if name is not None:
+            q['name'] = name
+
         req = self.api.client.post(
-            '/containers/create',
+            '/containers/create%s' query_string(**q),
             headers={
                 'Content-Type': 'application/json'
             },
