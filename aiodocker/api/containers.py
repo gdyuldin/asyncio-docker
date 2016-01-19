@@ -81,7 +81,7 @@ class Container(BaseEntity, APIUnbound):
             q['name'] = name
 
         req = self.api.client.post(
-            '/containers/create%s' query_string(**q),
+            '/containers/create%s' % query_string(**q),
             headers={
                 'Content-Type': 'application/json'
             },
