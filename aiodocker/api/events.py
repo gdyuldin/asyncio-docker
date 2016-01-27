@@ -37,20 +37,20 @@ class EventsStream(APIUnbound):
 class Events(APIUnbound):
 
     def __init__(self, since=None, until=None):
-        self._response = None
+        self._res = None
 
     @classmethod
     def get(cls):
         return cls.api.Events()
 
     async def __aiter__(self):
-        return self.api.EventsStream(self._response.content)
+        return self.api.EventsStream(self._res.content)
 
     async def __aenter__(self):
-        if self._response is not None:
+        if self._res is not None:
             raise Exception
-        self._response = await self.api.client.get('/events')
+        self._res = await self.api.client.get('/events')
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
-        self._response.close()
+        self._res.close()

@@ -2,19 +2,26 @@ class APIError(Exception):
     pass
 
 
-class Status304Error(APIError):
+class StatusError(APIError):
+
+    def __init__(self, *args, **kwargs):
+        self.status = kwargs.pop('status', None)
+        super(StatusError, self).__init__(*args, **kwargs)
+
+
+class Status304Error(StatusError):
     pass
 
 
-class Status404Error(APIError):
+class Status404Error(StatusError):
     pass
 
 
-class Status500Error(APIError):
+class Status500Error(StatusError):
     pass
 
 
-class StatusUnknownError(APIError):
+class StatusUnknownError(StatusError):
     pass
 
 
@@ -24,8 +31,9 @@ _status_errors = {
     500: Status500Error
 }
 
-def status_error(status):
-    if status in _status_errors:
-        return _status_errors[status]
+async def status_error(res):
+    message = await res.text()
+    if res.status in _status_errors:
+        return _status_errors[res.status](message, status=res.status)
     else:
-        return StatusUnknownError(status)
+        return StatusUnknownError(message, status=res.status)

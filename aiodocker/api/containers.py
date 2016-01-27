@@ -15,57 +15,57 @@ class Container(BaseEntity, APIUnbound):
         req = self.api.client.get(self._url('top'))
         async with req as res:
             if res.status != 200:
-                raise status_error(res.status)
+                raise await status_error(res)
             return await res.json()
 
     async def inspect(self):
         req = self.api.client.get(self._url('json'))
         async with req as res:
             if res.status != 200:
-                raise status_error(res.status)
+                raise await status_error(res)
             return self.api.Container(**await(res.json()))
 
     async def stop(self, timeout=None):
         req = self.api.client.post(self._url('stop'))
         async with req as res:
             if res.status != 204:
-                raise status_error(res.status)
+                raise await status_error(res)
 
     async def start(self):
         req = self.api.client.post(self._url('start'))
         async with req as res:
             if res.status != 204:
-                raise status_error(res.status)
+                raise await status_error(res)
 
     async def restart(self, timeout=None):
         req = self.api.client.post(self._url('restart'))
         async with req as res:
             if res.status != 204:
-                raise status_error(res.status)
+                raise await status_error(res)
 
     async def pause(self):
         req = self.api.client.post(self._url('pause'))
         async with req as res:
             if res.status != 204:
-                raise status_error(res.status)
+                raise await status_error(res)
 
     async def unpause(self):
         req = self.api.client.post(self._url('unpause'))
         async with req as res:
             if res.status != 204:
-                raise status_error(res.status)
+                raise await status_error(res)
 
     async def kill(self, signal=None):
         req = self.api.client.post(self._url('kill'))
         async with req as res:
             if res.status != 204:
-                raise status_error(res.status)
+                raise await status_error(res)
 
     async def remove(self, remove_volumes=None, force=None):
         req = self.api.client.delete(self._url())
         async with req as res:
             if res.status != 204:
-                raise status_error(res.status)
+                raise await status_error(res)
 
     async def create(self, name=None):
         if 'Config' in self:
@@ -90,7 +90,7 @@ class Container(BaseEntity, APIUnbound):
 
         async with req as res:
             if res.status != 201:
-                raise status_error(res.status)
+                raise await status_error(res)
             return self.api.Container(**await(res.json()))
 
     def _url(self, action=None):
@@ -153,7 +153,7 @@ class Containers(list, APIUnbound):
         req = cls.api.client.get('/containers/json%s' % query_string(**q))
         async with req as res:
             if res.status != 200:
-                raise status_error(res.status)
+                raise await status_error(res)
             return cls.api.Containers([
                 cls.api.Container(**val) for val in await res.json()
             ])
