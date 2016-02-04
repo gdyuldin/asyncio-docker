@@ -1,13 +1,12 @@
-import aiohttp
-import json
-
-from aiodocker.api.base import BaseEntity
 from aiodocker.api.registry import APIUnbound
 from aiodocker.api.errors import status_error
 from aiodocker.api.constants.events import CONTAINER_EVENTS, IMAGE_EVENTS
 
+import aiohttp
+import json
 
-class Event(BaseEntity, APIUnbound):
+
+class Event(APIUnbound):
 
     @property
     def container(self):

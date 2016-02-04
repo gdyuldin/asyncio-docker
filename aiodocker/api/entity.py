@@ -1,5 +1,4 @@
 from attrdict import AttrDict
 
-class BaseEntity(AttrDict):
-
+class APIEntity(AttrDict):
     pass

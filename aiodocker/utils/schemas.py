@@ -1,6 +1,7 @@
 from pydash.collections import reduce_
 from pydash.objects import pick
 
+
 def schema_extract(mapping, schema):
     # Filter out any key not present in schema
     mapping = pick(mapping, list(schema['properties'].keys()))

@@ -25,7 +25,6 @@ PUSH = 'push'
 TAG = 'tag'
 UNTAG = 'untag'
 
-
 CONTAINER_EVENTS = (
     ATTACH,
     COMMIT,

@@ -1,139 +1,164 @@
-from aiodocker.api.base import BaseEntity
 from aiodocker.api.registry import APIUnbound
 from aiodocker.api.errors import status_error
 from aiodocker.api.constants.schemas import CONFIG
+from aiodocker.api.constants.http import (
+    HEADER_CONTENT_TYPE,
+    APPLICATION_JSON
+)
 from aiodocker.utils.schemas import schema_extract
-from aiodocker.utils.query import query_string
+from aiodocker.utils.url import build_url
 
 import json
 from jsonschema import validate, ValidationError
 
 
-class Container(BaseEntity, APIUnbound):
+PREFIX = 'containers'
 
-    async def top(self):
-        req = self.api.client.get(self._url('top'))
+
+class Container(APIUnbound):
+
+    def __init__(self, id):
+        self._id = id
+
+    def top(self):
+        return self.api.Containers.top(self.Id)
+
+    def inspect(self):
+        return self.api.Containers.inspect(self.Id)
+
+    def start(self):
+        return self.api.Containers.start(self.Id)
+
+    def stop(self):
+        return self.api.Containers.stop(self.Id)
+
+    def restart(self):
+        return self.api.Containers.restart(self.Id)
+
+    def pause(self):
+        return self.api.Containers.pause(self.Id)
+
+    def unpause(self):
+        return self.api.Containers.unpause(self.Id)
+
+    def kill(self):
+        return self.api.Containers.kill(self.Id)
+
+    def remove(self):
+        return self.api.Containers.remove(self.Id)
+
+    @property
+    def Id(self):
+        return self._id
+
+    def __hash__(self):
+        return hash(self.Id)
+
+    def __eq__(self, other):
+        if isinstance(other, Container):
+            return self.Id == other.Id
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, Container):
+            return self.Id != other.Id
+        return NotImplemented
+
+    def __repr__(self):
+        return 'Container <%s>' % self.Id
+
+    def __str__(self):
+        return self.Id
+
+
+class Containers(APIUnbound):
+
+    @classmethod
+    async def top(cls, id):
+        req = cls.api.client.get(build_url(PREFIX, id, 'top'))
         async with req as res:
             if res.status != 200:
                 raise await status_error(res)
             return await res.json()
 
-    async def inspect(self):
-        req = self.api.client.get(self._url('json'))
+    @classmethod
+    async def inspect(cls, id):
+        req = cls.api.client.get(build_url(PREFIX, id, 'json'))
         async with req as res:
             if res.status != 200:
                 raise await status_error(res)
-            return self.api.Container(**await(res.json()))
+            return cls.api.Container(**await(res.json()))
 
-    async def stop(self, timeout=None):
-        req = self.api.client.post(self._url('stop'))
+    @classmethod
+    async def stop(cls, id, timeout=None):
+        req = cls.api.client.post(build_url(PREFIX, id, 'stop'))
         async with req as res:
             if res.status != 204:
                 raise await status_error(res)
 
-    async def start(self):
-        req = self.api.client.post(self._url('start'))
+    @classmethod
+    async def start(cls, id):
+        req = cls.api.client.post(build_url(PREFIX, id, 'start'))
         async with req as res:
             if res.status != 204:
                 raise await status_error(res)
 
-    async def restart(self, timeout=None):
-        req = self.api.client.post(self._url('restart'))
+    @classmethod
+    async def restart(cls, id, timeout=None):
+        req = cls.api.client.post(build_url(PREFIX, id, 'restart'))
         async with req as res:
             if res.status != 204:
                 raise await status_error(res)
 
-    async def pause(self):
-        req = self.api.client.post(self._url('pause'))
+    @classmethod
+    async def pause(cls, id):
+        req = cls.api.client.post(build_url(PREFIX, id, 'pause'))
         async with req as res:
             if res.status != 204:
                 raise await status_error(res)
 
-    async def unpause(self):
-        req = self.api.client.post(self._url('unpause'))
+    @classmethod
+    async def unpause(cls, id):
+        req = cls.api.client.post(build_url(PREFIX, id, 'unpause'))
         async with req as res:
             if res.status != 204:
                 raise await status_error(res)
 
-    async def kill(self, signal=None):
-        req = self.api.client.post(self._url('kill'))
+    @classmethod
+    async def kill(cls, id, signal=None):
+        req = cls.api.client.post(build_url(PREFIX, id, 'kill'))
         async with req as res:
             if res.status != 204:
                 raise await status_error(res)
 
-    async def remove(self, remove_volumes=None, force=None):
-        req = self.api.client.delete(self._url())
+    @classmethod
+    async def remove(cls, id, remove_volumes=None, force=None):
+        req = cls.api.client.delete(build_url(PREFIX, id))
         async with req as res:
             if res.status != 204:
                 raise await status_error(res)
 
-    async def create(self, name=None):
-        if 'Config' in self:
-            Config = self.Config
-        else:
-            Config = dict(self)
-
-        Config = schema_extract(Config, CONFIG)
-        validate(Config, CONFIG)
+    @classmethod
+    async def create(cls, config, name=None):
+        config = schema_extract(config, CONFIG)
+        validate(config, CONFIG)
 
         q = {}
         if name is not None:
             q['name'] = name
 
-        req = self.api.client.post(
-            '/containers/create%s' % query_string(**q),
+        req = cls.api.client.post(
+            build_url(PREFIX, id, 'create', **q),
             headers={
-                'Content-Type': 'application/json'
+                HEADER_CONTENT_TYPE: APPLICATION_JSON
             },
-            data=json.dumps(Config)
+            data=json.dumps(config)
         )
 
         async with req as res:
             if res.status != 201:
                 raise await status_error(res)
-            return self.api.Container(**await(res.json()))
-
-    def _url(self, action=None):
-        if action is None:
-            return '/containers/%s' % self._require_Id()
-        else:
-            return '/containers/%s/%s' % (self._require_Id(), action)
-
-    def _require_Id(self):
-        if 'Id' not in self:
-            raise Exception("Id is required")
-        return self.Id
-
-    def __hash__(self):
-        if 'Id' in self:
-            return hash(self.Id)
-        else:
-            return super(Container, self).__hash__()
-
-    def __eq__(self, other):
-        if isinstance(other, Container) and 'Id' in self and 'Id' in other:
-            return self.Id == other.Id
-        return NotImplemented
-
-    def __ne__(self, other):
-        if isinstance(other, Container) and 'Id' in self and 'Id' in other:
-            return self.Id != other.Id
-        return NotImplemented
-
-    def __repr__(self):
-        if 'Id' in self:
-            return 'Container <%s>' % self.Id
-        else:
-            return 'Container <unknown>'
-
-    def __str__(self):
-        if 'Id' in self:
-            return self.Id
-        else:
-            return "unknown"
-
-
-class Containers(list, APIUnbound):
+            return cls.api.Container((await(res.json()))['Id'])
 
     @classmethod
     async def list(cls, all=None, labels=None, filters=None):
@@ -150,10 +175,10 @@ class Containers(list, APIUnbound):
         if all is not None:
             q['all'] = '1' if all else '0'
 
-        req = cls.api.client.get('/containers/json%s' % query_string(**q))
+        req = cls.api.client.get(build_url(PREFIX, 'json', **q))
         async with req as res:
             if res.status != 200:
                 raise await status_error(res)
-            return cls.api.Containers([
-                cls.api.Container(**val) for val in await res.json()
-            ])
+            return [
+                cls.api.Container(data['Id']) for data in await res.json()
+            ]

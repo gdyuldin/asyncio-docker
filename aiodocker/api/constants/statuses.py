@@ -5,7 +5,7 @@ PAUSED = 'paused'
 RESTARTING = 'restarting'
 
 
-_container_stasuses = (
+CONTAINER_STATUSES = (
     CREATED,
     RUNNING,
     EXITED,
