@@ -4,8 +4,9 @@ from aiodocker.api.constants.schemas import CONFIG
 from aiodocker.utils.schemas import schema_extract
 from aiodocker.utils.url import build_url
 
-import json
+from attrdict import AttrDict
 from jsonschema import validate, ValidationError
+import json
 
 
 PREFIX = 'images'
@@ -16,42 +17,42 @@ class Image(APIUnbound):
     def __init__(self, name):
         self._name = name
 
-    def inspect(self):
-        return self.api.Images.inspect(self.Name)
+    async def inspect(self):
+        return await self.api.Images.inspect(self.name)
 
     @property
-    def Name(self):
+    def name(self):
         return self._name
 
     def __hash__(self):
-        return hash(self.Name)
+        return hash(self.name)
 
     def __eq__(self, other):
         if isinstance(other, Image):
-            return self.Name == other.Name
+            return self.name == other.name
         return NotImplemented
 
     def __ne__(self, other):
         if isinstance(other, Image):
-            return self.Name != other.Name
+            return self.name != other.name
         return NotImplemented
 
     def __repr__(self):
-        return 'Image <%s>' % self.Name
+        return 'Image <%s>' % self.name
 
     def __str__(self):
-        return self.Name
+        return self.name
 
 
 class Images(APIUnbound):
 
     @classmethod
     async def inspect(cls, name):
-        req = self.api.client.get(build_url(PREFIX, name, 'json'))
+        req = cls.api.client.get(build_url(PREFIX, name, 'json'))
         async with req as res:
             if res.status != 200:
                 raise await status_error(res)
-            return self.api.Image(**await(res.json()))
+            return AttrDict(**await(res.json()))
 
     @classmethod
     async def list(cls, all=None, labels=None, filters=None):

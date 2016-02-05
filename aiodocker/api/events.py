@@ -8,15 +8,60 @@ import json
 
 class Event(APIUnbound):
 
+    def __init__(self, id, *, status, time, fromm):
+        self._id = id
+        self._status = status
+        self._time = time
+        self._fromm = fromm
+
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def status(self):
+        return self._status
+
+    @property
+    def time(self):
+        return self._time
+
+    @property
+    def fromm(self):
+        return self._fromm
+
     @property
     def container(self):
         if self.status in CONTAINER_EVENTS:
-            return self.api.Container(Id=self.id)
+            return self.api.Container(self.id)
         else:
             return None
 
+    @property
+    def image(self):
+        if self.status in IMAGE_EVENTS:
+            return self.api.Image(self.id)
+        else:
+            return None
+
+    def __hash__(self):
+        return hash((self.status, self.id, self.time, self.fromm))
+
+    def __eq__(self, other):
+        if isinstance(other, Event):
+            return hash(self) == hash(other)
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, Image):
+            return hash(self) != hash(other)
+        return NotImplemented
+
     def __repr__(self):
-        return '%s <%s>' % (self.status, self.id)
+        return 'Event <%s:%s at %s>' % (self.id, self.status, self.time)
+
+    def __str__(self):
+        return self.id
 
 
 class EventsStream(APIUnbound):
@@ -28,7 +73,14 @@ class EventsStream(APIUnbound):
         chunk = await self._stream.readline()
         if chunk is not None:
             try:
-                return self.api.Event(**json.loads(chunk.decode(encoding='UTF-8')))
+                data = json.loads(chunk.decode(encoding='UTF-8'))
+                return self.api.Event(
+                    data['id'],
+                    status=data['status'],
+                    time=data['time'],
+                    fromm=data['from']
+                )
+
             except json.JSONDecodeError:
                 raise StopAsyncIteration
 

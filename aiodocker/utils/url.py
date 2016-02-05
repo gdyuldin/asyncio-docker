@@ -4,7 +4,7 @@ from urllib.parse import quote
 
 def build_url(*parts, **params):
     path = '/'.join(('',) + parts)
-    return ''.join(path, query_string(**params))
+    return ''.join([path, query_string(**params)])
 
 
 def query_string(**params):

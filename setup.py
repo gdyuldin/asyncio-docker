@@ -24,8 +24,7 @@ setup(
     install_requires=[
         'aiohttp',
         'jsonschema',
-        'attrdict',
-        'pydash'
+        'attrdict'
     ],
     zip_safe=False,
     classifiers=[

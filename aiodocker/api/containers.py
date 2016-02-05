@@ -8,8 +8,9 @@ from aiodocker.api.constants.http import (
 from aiodocker.utils.schemas import schema_extract
 from aiodocker.utils.url import build_url
 
-import json
+from attrdict import AttrDict
 from jsonschema import validate, ValidationError
+import json
 
 
 PREFIX = 'containers'
@@ -17,58 +18,58 @@ PREFIX = 'containers'
 
 class Container(APIUnbound):
 
-    def __init__(self, id):
+    def __init__(self,  id):
         self._id = id
 
-    def top(self):
-        return self.api.Containers.top(self.Id)
+    async def top(self):
+        return await self.api.Containers.top(self.id)
 
-    def inspect(self):
-        return self.api.Containers.inspect(self.Id)
+    async def inspect(self):
+        return await self.api.Containers.inspect(self.id)
 
-    def start(self):
-        return self.api.Containers.start(self.Id)
+    async def start(self):
+        return await self.api.Containers.start(self.id)
 
-    def stop(self):
-        return self.api.Containers.stop(self.Id)
+    async def stop(self):
+        return await self.api.Containers.stop(self.id)
 
-    def restart(self):
-        return self.api.Containers.restart(self.Id)
+    async def restart(self):
+        return await self.api.Containers.restart(self.id)
 
-    def pause(self):
-        return self.api.Containers.pause(self.Id)
+    async def pause(self):
+        return await self.api.Containers.pause(self.id)
 
-    def unpause(self):
-        return self.api.Containers.unpause(self.Id)
+    async def unpause(self):
+        return await self.api.Containers.unpause(self.id)
 
-    def kill(self):
-        return self.api.Containers.kill(self.Id)
+    async def kill(self):
+        return await self.api.Containers.kill(self.id)
 
-    def remove(self):
-        return self.api.Containers.remove(self.Id)
+    async def remove(self):
+        return await self.api.Containers.remove(self.id)
 
     @property
-    def Id(self):
+    def id(self):
         return self._id
 
     def __hash__(self):
-        return hash(self.Id)
+        return hash(self.id)
 
     def __eq__(self, other):
         if isinstance(other, Container):
-            return self.Id == other.Id
+            return self.id == other.id
         return NotImplemented
 
     def __ne__(self, other):
         if isinstance(other, Container):
-            return self.Id != other.Id
+            return self.id != other.id
         return NotImplemented
 
     def __repr__(self):
-        return 'Container <%s>' % self.Id
+        return 'Container <%s>' % self.id
 
     def __str__(self):
-        return self.Id
+        return self.id
 
 
 class Containers(APIUnbound):
@@ -79,7 +80,7 @@ class Containers(APIUnbound):
         async with req as res:
             if res.status != 200:
                 raise await status_error(res)
-            return await res.json()
+            return AttrDict(**(await res.json()))
 
     @classmethod
     async def inspect(cls, id):
@@ -87,7 +88,7 @@ class Containers(APIUnbound):
         async with req as res:
             if res.status != 200:
                 raise await status_error(res)
-            return cls.api.Container(**await(res.json()))
+            return AttrDict(**(await res.json()))
 
     @classmethod
     async def stop(cls, id, timeout=None):
@@ -148,7 +149,7 @@ class Containers(APIUnbound):
             q['name'] = name
 
         req = cls.api.client.post(
-            build_url(PREFIX, id, 'create', **q),
+            build_url(PREFIX, 'create', **q),
             headers={
                 HEADER_CONTENT_TYPE: APPLICATION_JSON
             },
