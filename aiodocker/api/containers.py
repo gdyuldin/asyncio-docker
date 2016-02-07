@@ -18,8 +18,13 @@ PREFIX = 'containers'
 
 class Container(APIUnbound):
 
-    def __init__(self,  id):
+    def __init__(self,  id, raw=None):
         self._id = id
+        self._raw = raw
+
+    @property
+    def raw(self):
+        return AttrDict(self._raw or {})
 
     async def top(self):
         return await self.api.Containers.top(self.id)
@@ -181,5 +186,5 @@ class Containers(APIUnbound):
             if res.status != 200:
                 raise await status_error(res)
             return [
-                cls.api.Container(data['Id']) for data in await res.json()
+                cls.api.Container(data['Id'], raw=data) for data in await res.json()
             ]

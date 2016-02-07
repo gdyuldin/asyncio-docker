@@ -99,8 +99,12 @@ class Events(APIUnbound):
 
     async def __aenter__(self):
         if self._res is not None:
-            raise Exception
-        self._res = await self.api.client.get('/events')
+            raise Exception()
+        res = await self.api.client.get('/events')
+        if res.status != 200:
+            raise await status_error(res)
+
+        self._res = res
         return self
 
     async def __aexit__(self, exc_type, exc, tb):

@@ -1,5 +1,5 @@
 from aiodocker.api.registry import APIUnbound
-from aiodocker.api.errors import status_error
+from aiodocker.api.errors import APIError, status_error
 from aiodocker.api.constants.schemas import CONFIG
 from aiodocker.utils.schemas import schema_extract
 from aiodocker.utils.url import build_url
@@ -14,8 +14,13 @@ PREFIX = 'images'
 
 class Image(APIUnbound):
 
-    def __init__(self, name):
+    def __init__(self, name, raw=None):
         self._name = name
+        self._raw = raw
+
+    @property
+    def raw(self):
+        return AttrDict(self._raw or {})
 
     async def inspect(self):
         return await self.api.Images.inspect(self.name)
@@ -55,7 +60,41 @@ class Images(APIUnbound):
             return AttrDict(**await(res.json()))
 
     @classmethod
-    async def list(cls, all=None, labels=None, filters=None):
+    async def create(cls, from_image=None, from_src=None, repo=None,
+            tag=None):
+
+        if (from_image is None and from_src is None or from_image is not None
+                and from_src is not None):
+            raise ValueError("Specify either from_image or from_src")
+
+        q = {}
+        if from_image is not None:
+            q['fromImage'] = from_image
+        if from_src is not None:
+            q['fromSrc'] = from_src
+        if repo is not None:
+            q['repo'] = repo
+        if tag is not None:
+            q['tag'] = tag
+
+        req = cls.api.client.post(
+            build_url(PREFIX, 'create', **q)
+        )
+
+        async with req as res:
+            if res.status != 200:
+                raise await status_error(res)
+
+            # Wait till full response is available
+            data = (await res.text()).splitlines()
+            if data:
+                # Check last status, make it has no error
+                last_status = json.loads(data[-1])
+                if 'error' in last_status:
+                    raise APIError(last_status['error'])
+
+    @classmethod
+    async def list(cls, all=None, labels=None, filters=None, filter=None):
         filters = filters or {}
         for label, val in (labels or {}).items():
             filters['label'] = filters.get('label', []) + [
@@ -66,6 +105,9 @@ class Images(APIUnbound):
         if filters:
             q['filters'] = filters
 
+        if filter:
+            q['filter'] = filter
+
         if all is not None:
             q['all'] = '1' if all else '0'
 
@@ -74,5 +116,5 @@ class Images(APIUnbound):
             if res.status != 200:
                 raise await status_error(res)
             return [
-                cls.api.Image(val['Name']) for val in await res.json()
+                cls.api.Image(data['Name'], raw=data) for data in await res.json()
             ]
