@@ -9,7 +9,7 @@ class BaseClient(object, metaclass=abc.ABCMeta):
     def __init__(self, host, *, loop=None):
         self.host = host
         self.loop = loop or asyncio.get_event_loop()
-        self.connector = self.new_connector()
+        self._connector = None
 
     @abc.abstractmethod
     def new_connector(self):
@@ -19,8 +19,18 @@ class BaseClient(object, metaclass=abc.ABCMeta):
     def resolve_url(self, url):
         pass
 
+    async def close(self):
+        if self._connector is not None and not self._connector.closed:
+            await self._connector.close()
+            self._connector = None
+
+    def _get_connector(self):
+        if self._connector is None or self._connector.closed:
+            self._connector = self.new_connector()
+        return self._connector
+
     def _client_kwargs(self, **kwargs):
-        return dict(connector=self.connector, loop=self.loop, **kwargs)
+        return dict(connector=self._get_connector(), loop=self.loop, **kwargs)
 
     def request(self, method, url, **kwargs):
         return aiohttp.request(method, self.resolve_url(url), **self._client_kwargs(**kwargs))

@@ -64,13 +64,18 @@ class Event(APIUnbound):
         return self.id
 
 
+class EventsStreamReponse(aiohttp.ClientResponse):
+
+    flow_control_class = aiohttp.FlowControlChunksQueue
+
+
 class EventsStream(APIUnbound):
 
     def __init__(self, stream):
         self._stream = stream
 
     async def __anext__(self):
-        chunk = await self._stream.readline()
+        chunk = await self._stream.read()
         if chunk is not None:
             try:
                 data = json.loads(chunk.decode(encoding='UTF-8'))
@@ -100,10 +105,9 @@ class Events(APIUnbound):
     async def __aenter__(self):
         if self._res is not None:
             raise Exception()
-        res = await self.api.client.get('/events')
+        res = await self.api.client.get('/events', response_class=EventsStreamReponse)
         if res.status != 200:
             raise await status_error(res)
-
         self._res = res
         return self
 
