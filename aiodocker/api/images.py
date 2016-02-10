@@ -2,6 +2,7 @@ from aiodocker.api.registry import APIUnbound
 from aiodocker.api.errors import APIError, status_error
 from aiodocker.api.constants.schemas import CONFIG
 from aiodocker.utils.schemas import schema_extract
+from aiodocker.utils.convention import snake_case
 from aiodocker.utils.url import build_url
 
 from attrdict import AttrDict
@@ -17,6 +18,10 @@ class Image(APIUnbound):
     def __init__(self, name, raw=None):
         self._name = name
         self._raw = raw
+
+    @property
+    def data(self):
+        return AttrDict(snake_case(self._raw or {}))
 
     @property
     def raw(self):
@@ -89,7 +94,7 @@ class Images(APIUnbound):
             data = (await res.text()).splitlines()
             if data:
                 # Check last status, make it has no error
-                last_status = json.loads(data[-1])
+                last_status = snake_case(json.loads(data[-1]))
                 if 'error' in last_status:
                     raise APIError(last_status['error'])
 
@@ -116,5 +121,5 @@ class Images(APIUnbound):
             if res.status != 200:
                 raise await status_error(res)
             return [
-                cls.api.Image(data['Name'], raw=data) for data in await res.json()
+                cls.api.Image(snake_case(raw)['name'], raw=raw) for raw in await res.json()
             ]

@@ -1,11 +1,12 @@
+from aiohttp.hdrs import CONTENT_TYPE
 from aiodocker.api.registry import APIUnbound
 from aiodocker.api.errors import status_error
 from aiodocker.api.constants.schemas import CONFIG
 from aiodocker.api.constants.http import (
-    HEADER_CONTENT_TYPE,
     APPLICATION_JSON
 )
 from aiodocker.utils.schemas import schema_extract
+from aiodocker.utils.convention import snake_case
 from aiodocker.utils.url import build_url
 
 from attrdict import AttrDict
@@ -21,6 +22,10 @@ class Container(APIUnbound):
     def __init__(self,  id, raw=None):
         self._id = id
         self._raw = raw
+
+    @property
+    def data(self):
+        return AttrDict(snake_case(self._raw or {}))
 
     @property
     def raw(self):
@@ -156,7 +161,7 @@ class Containers(APIUnbound):
         req = cls.api.client.post(
             build_url(PREFIX, 'create', **q),
             headers={
-                HEADER_CONTENT_TYPE: APPLICATION_JSON
+                CONTENT_TYPE: APPLICATION_JSON
             },
             data=json.dumps(config)
         )
@@ -164,7 +169,9 @@ class Containers(APIUnbound):
         async with req as res:
             if res.status != 201:
                 raise await status_error(res)
-            return cls.api.Container((await(res.json()))['Id'])
+            
+            raw = await(res.json())
+            return cls.api.Container(snake_case(raw)['id'], raw=raw)
 
     @classmethod
     async def list(cls, all=None, labels=None, filters=None):
@@ -186,5 +193,5 @@ class Containers(APIUnbound):
             if res.status != 200:
                 raise await status_error(res)
             return [
-                cls.api.Container(data['Id'], raw=data) for data in await res.json()
+                cls.api.Container(snake_case(raw)['id'], raw=raw) for raw in await res.json()
             ]

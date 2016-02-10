@@ -1,8 +1,11 @@
+# Containers, Volumes, Networks
+CREATE = 'create'
+DESTROY = 'destroy'
+
+# Containers
 ATTACH = 'attach'
 COMMIT = 'commit'
 COPY = 'copy'
-CREATE = 'create'
-DESTROY = 'destroy'
 DIE = 'die'
 EXEC_CREATE = 'exec_create'
 EXEC_START = 'exec_start'
@@ -18,6 +21,7 @@ STOP = 'stop'
 TOP = 'top'
 UNPAUSE = 'unpause'
 
+# Images
 DELETE = 'delete'
 IMPORT = 'import'
 PULL = 'pull'
@@ -25,33 +29,10 @@ PUSH = 'push'
 TAG = 'tag'
 UNTAG = 'untag'
 
-CONTAINER_EVENTS = (
-    ATTACH,
-    COMMIT,
-    COPY,
-    CREATE,
-    DESTROY,
-    DIE,
-    EXEC_CREATE,
-    EXEC_START,
-    EXPORT,
-    KILL,
-    OOM,
-    PAUSE,
-    RENAME,
-    RESIZE,
-    RESTART,
-    START,
-    STOP,
-    TOP,
-    UNPAUSE
-)
+# Volumes
+MOUNT = 'mount'
+UNMOUNT = 'unmount'
 
-IMAGE_EVENTS = (
-    DELETE,
-    IMPORT,
-    PULL,
-    PUSH,
-    TAG,
-    UNTAG
-)
+# Networks
+CONNECT = 'connect'
+DISCONNECT = 'disconnect'

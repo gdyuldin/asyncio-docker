@@ -1,6 +1,7 @@
 from aiodocker.api.registry import APIUnbound
 from aiodocker.api.errors import status_error
 from aiodocker.utils.url import build_url
+from aiodocker.utils.convention import snake_case
 
 from attrdict import AttrDict
 import json
@@ -11,8 +12,17 @@ PREFIX = 'networks'
 
 class Network(APIUnbound):
 
-    def __init__(self, id):
+    def __init__(self, id, raw=None):
         self._id = id
+        self._raw = raw
+
+    @property
+    def data(self):
+        return AttrDict(snake_case(self._raw or {}))
+
+    @property
+    def raw(self):
+        return AttrDict(self._raw or {})
 
     async def inspect(self):
         return await self.api.Networks.inspect(self.id)
@@ -61,6 +71,22 @@ class Networks(APIUnbound):
             return AttrDict(**await(res.json()))
 
     @classmethod
+    async def connect(cls, id, container):
+        pass
+
+    @classmethod
+    async def disconnect(cls, id, container):
+        pass
+
+    @classmethod
+    async def remove(cls, id):
+        pass
+
+    @classmethod
+    async def create(cls, config):
+        pass
+
+    @classmethod
     async def list(cls, names=None, ids=None, filters=None):
         filters = filters or {}
         if names is not None:
@@ -78,5 +104,5 @@ class Networks(APIUnbound):
             if res.status != 200:
                 raise await status_error(res)
             return [
-                cls.api.Network(val['Id']) for val in await res.json()
+                cls.api.Network(snake_case(val)['id'], raw=raw) for raw in await res.json()
             ]

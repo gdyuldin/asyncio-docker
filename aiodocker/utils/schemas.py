@@ -1,5 +1,6 @@
 from functools import reduce
 
+
 def schema_extract(mapping, schema):
     # Filter out any key not present in schema
     mapping = {

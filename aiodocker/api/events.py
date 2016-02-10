@@ -1,51 +1,58 @@
 from aiodocker.api.registry import APIUnbound
 from aiodocker.api.errors import status_error
-from aiodocker.api.constants.events import CONTAINER_EVENTS, IMAGE_EVENTS
+from aiodocker.api.constants.types import CONTAINER, IMAGE, NETWORK, VOLUME
+from aiodocker.utils.convention import snake_case
 
+from attrdict import AttrDict
 import aiohttp
 import json
 
 
 class Event(APIUnbound):
 
-    def __init__(self, id, *, status, time, fromm):
-        self._id = id
-        self._status = status
+    def __init__(self, *, action, type, actor, time, raw=None):
+        self._action = action
+        self._type = type
+        self._actor = actor
         self._time = time
-        self._fromm = fromm
+        self._raw = raw
 
     @property
-    def id(self):
-        return self._id
+    def action(self):
+        return self._action
 
     @property
-    def status(self):
-        return self._status
+    def type(self):
+        return self._type
+
+    @property
+    def actor(self):
+        return AttrDict(self._actor)
 
     @property
     def time(self):
         return self._time
 
     @property
-    def fromm(self):
-        return self._fromm
-
-    @property
     def container(self):
-        if self.status in CONTAINER_EVENTS:
-            return self.api.Container(self.id)
+        if self.type == CONTAINER:
+            return self.api.Container(self.actor.id)
         else:
             return None
 
     @property
     def image(self):
         if self.status in IMAGE_EVENTS:
-            return self.api.Image(self.id)
+            return self.api.Image(self.actor.id)
         else:
             return None
 
+    @property
+    def raw(self):
+        return AttrDict(self._raw or {})
+
     def __hash__(self):
-        return hash((self.status, self.id, self.time, self.fromm))
+        return hash((self.action, self.type, self.time))
 
     def __eq__(self, other):
         if isinstance(other, Event):
@@ -58,10 +65,10 @@ class Event(APIUnbound):
         return NotImplemented
 
     def __repr__(self):
-        return 'Event <%s:%s at %s>' % (self.id, self.status, self.time)
+        return 'Event <%s:%s at %s>' % (self.action, self.type, self.time)
 
     def __str__(self):
-        return self.id
+        return self.action
 
 
 class EventsStreamReponse(aiohttp.ClientResponse):
@@ -78,12 +85,14 @@ class EventsStream(APIUnbound):
         chunk = await self._stream.read()
         if chunk is not None:
             try:
-                data = json.loads(chunk.decode(encoding='UTF-8'))
+                raw = json.loads(chunk.decode(encoding='UTF-8'))
+                data = snake_case(raw)
                 return self.api.Event(
-                    data['id'],
-                    status=data['status'],
-                    time=data['time'],
-                    fromm=data['from']
+                    action=data['action'],
+                    type=data['type'],
+                    actor=data['actor'],
+                    time=data['time_nano'],
+                    raw=raw,
                 )
 
             except json.JSONDecodeError:
