@@ -42,8 +42,22 @@ class Event(APIUnbound):
 
     @property
     def image(self):
-        if self.status in IMAGE_EVENTS:
+        if self.type == IMAGE:
             return self.api.Image(self.actor.id)
+        else:
+            return None
+
+    @property
+    def network(self):
+        if self.type == NETWORK:
+            return self.api.Network(self.actor.id)
+        else:
+            return None
+
+    @property
+    def volume(self):
+        if self.type == VOLUME:
+            return self.api.Volume(self.actor.id)
         else:
             return None
 

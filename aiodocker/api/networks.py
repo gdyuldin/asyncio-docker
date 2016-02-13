@@ -1,7 +1,13 @@
+from aiohttp.hdrs import CONTENT_TYPE
 from aiodocker.api.registry import APIUnbound
 from aiodocker.api.errors import status_error
+from aiodocker.api.constants.http import (
+    APPLICATION_JSON
+)
 from aiodocker.utils.url import build_url
 from aiodocker.utils.convention import snake_case
+
+
 
 from attrdict import AttrDict
 import json
@@ -28,13 +34,13 @@ class Network(APIUnbound):
         return await self.api.Networks.inspect(self.id)
 
     async def connect(self, container):
-        pass
+        return await self.api.Networks.connect(self.id, container)
 
     async def disconnect(self, container):
-        pass
+        return await self.api.Networks.disconnect(self.id, container)
 
     async def remove(self):
-        pass
+        await self.api.Networks.remove(self.id)
 
     @property
     def id(self):
@@ -72,11 +78,37 @@ class Networks(APIUnbound):
 
     @classmethod
     async def connect(cls, id, container):
-        pass
+
+        req = cls.api.client.post(
+            build_url(PREFIX, id, 'connect'),
+            headers={
+                CONTENT_TYPE: APPLICATION_JSON
+            },
+            data=json.dumps({
+                'container': container.id
+            })
+        )
+
+        async with req as res:
+            if res.status != 200:
+                raise await status_error(res)
 
     @classmethod
     async def disconnect(cls, id, container):
-        pass
+
+        req = cls.api.client.post(
+            build_url(PREFIX, id, 'disconnect'),
+            headers={
+                CONTENT_TYPE: APPLICATION_JSON
+            },
+            data=json.dumps({
+                'container': container.id
+            })
+        )
+
+        async with req as res:
+            if res.status != 200:
+                raise await status_error(res)
 
     @classmethod
     async def remove(cls, id):
@@ -99,10 +131,10 @@ class Networks(APIUnbound):
         if filters:
             q['filters'] = filters
 
-        req = cls.api.client.get(build_url(PREFIX, 'json', **q))
+        req = cls.api.client.get(build_url(PREFIX, **q))
         async with req as res:
             if res.status != 200:
                 raise await status_error(res)
             return [
-                cls.api.Network(snake_case(val)['id'], raw=raw) for raw in await res.json()
+                cls.api.Network(snake_case(raw)['id'], raw=raw) for raw in await res.json()
             ]
