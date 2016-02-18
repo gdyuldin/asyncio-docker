@@ -8,35 +8,46 @@ class BaseClient(object, metaclass=abc.ABCMeta):
 
     def __init__(self, host, *, loop=None):
         self.host = host
-        self.loop = loop or asyncio.get_event_loop()
+        self._loop = loop or asyncio.get_event_loop()
         self._connector = None
 
     @abc.abstractmethod
-    def new_connector(self):
+    def new_connector(self, loop):
         pass
 
     @abc.abstractmethod
     def resolve_url(self, url):
         pass
 
-    async def close(self):
+    def close(self):
         if self._connector is not None and not self._connector.closed:
-            await self._connector.close()
+            self._loop.run_until_complete(self._connector.close())
             self._connector = None
 
     def _get_connector(self):
         if self._connector is None or self._connector.closed:
-            self._connector = self.new_connector()
+            self._connector = self.new_connector(self._loop)
         return self._connector
 
     def _client_kwargs(self, **kwargs):
-        return dict(connector=self._get_connector(), loop=self.loop, **kwargs)
+        return dict(
+            connector=self._get_connector(),
+            loop=self._loop,
+            **kwargs
+        )
 
     def request(self, method, url, **kwargs):
-        return aiohttp.request(method, self.resolve_url(url), **self._client_kwargs(**kwargs))
+        return aiohttp.request(
+            method,
+            self.resolve_url(url),
+            **self._client_kwargs(**kwargs)
+        )
 
     def ws_connect(self, url, **kwargs):
-        return aiohttp.ws_connect(self.resolve_url(url), **self._client_kwargs(**kwargs))
+        return aiohttp.ws_connect(
+            self.resolve_url(url),
+            **self._client_kwargs(**kwargs)
+        )
 
     def get(self, url, **kwargs):
         return self.request('GET', url, **kwargs)
@@ -53,8 +64,8 @@ class BaseClient(object, metaclass=abc.ABCMeta):
 
 class TCPClient(BaseClient):
 
-    def new_connector(self):
-        return aiohttp.TCPConnector(loop=self.loop)
+    def new_connector(self, loop):
+        return aiohttp.TCPConnector(loop=loop)
 
     def resolve_url(self, url):
         o = urlsplit(self.host)
