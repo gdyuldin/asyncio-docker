@@ -11,7 +11,7 @@ def query_string(**params):
     # Reduce to query string
 
     def parse(val):
-        if isinstance(val, (dict, list, set, tuple)):
+        if not isinstance(val, (str, bytes)):
             val = json.dumps(val)
         return quote(val)
 
