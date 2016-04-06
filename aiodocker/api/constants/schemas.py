@@ -18,7 +18,7 @@ PORT_MAP = {
     }
 }
 
-LABELS = {
+STRING_MAP = {
     'type': 'object',
     'patternProperties': {
         '^': {
@@ -31,13 +31,45 @@ HOST_CONFIG = {
     'type': 'object',
     'properties': {
         'NetworkMode': {
-            'type': 'string'
+            'type': 'string',
+            'default': 'default'
         },
+        'Binds': {
+            'type': 'array',
+            'items': {
+                'type': 'string'
+            },
+        }
     },
-    'additionalProperties': True
+    'additionalProperties': False
 }
 
-CONFIG = {
+
+IPAM_CONFIG = {
+    'type': 'object',
+    'properties': {
+        'Subnet': {
+            'type': 'string'
+        },
+        'IPRange': {
+            'type': 'string'
+        },
+        'Gateway': {
+            'type': 'string'
+        },
+        'AuxAddress': {
+            'type': 'object',
+            'patternProperties': {
+                '^': {
+                    'type': 'string'
+                }
+            }
+        },
+    }
+}
+
+
+CREATE_CONTAINER = {
     'type': 'object',
     'properties': {
         'Hostname': {
@@ -146,11 +178,55 @@ CONFIG = {
             'type': 'string',
             'description': "Signal to stop a container"
         },
-        'Labels': LABELS,
+        'Labels': STRING_MAP,
         'HostConfig': HOST_CONFIG
     },
     'additionalProperties': False,
     'required': [
         'Image'
     ]
+}
+
+
+CREATE_NETWORK = {
+    'type': 'object',
+    'properties': {
+        'Name': {
+            'type': 'string'
+        },
+        'Driver': {
+            'type': 'string'
+        },
+        'IPAM': IPAM_CONFIG,
+        'Internal': {
+            'type': 'boolean'
+        },
+        'CheckDuplicate': {
+            'type': 'boolean'
+        },
+        'Labels': STRING_MAP,
+        'Options': STRING_MAP
+    },
+    'additionalProperties': False,
+    'required': [
+        'Name'
+    ]
+}
+
+
+CREATE_VOLUME = {
+    'type': 'object',
+    'properties': {
+        'Name': {
+            'type': 'string'
+        },
+        'Driver': {
+            'type': 'string'
+        },
+        'DriverOpts': {
+            'type': 'object'
+        },
+        'Labels': STRING_MAP
+    },
+    'additionalProperties': False
 }

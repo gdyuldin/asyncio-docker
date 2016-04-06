@@ -1,6 +1,7 @@
 from aiohttp.hdrs import CONTENT_TYPE
 from aiodocker.api.registry import APIUnbound
 from aiodocker.api.errors import status_error
+from aiodocker.api.constants.schemas import CREATE_NETWORK
 from aiodocker.api.constants.http import (
     APPLICATION_JSON
 )
@@ -112,11 +113,29 @@ class Networks(APIUnbound):
 
     @classmethod
     async def remove(cls, id):
-        pass
+        req = cls.api.client.delete(build_url(PREFIX, id))
+        async with req as res:
+            if res.status != 200:
+                raise await status_error(res)
 
     @classmethod
     async def create(cls, config):
-        pass
+        validate(config, CREATE_NETWORK)
+
+        req = cls.api.client.post(
+            build_url(PREFIX, 'create'),
+            headers={
+                CONTENT_TYPE: APPLICATION_JSON
+            },
+            data=json.dumps(config)
+        )
+
+        async with req as res:
+            if res.status != 201:
+                raise await status_error(res)
+
+            raw = await(res.json())
+            return cls.api.Network(snake_case(raw)['id'], raw=raw)
 
     @classmethod
     async def list(cls, names=None, ids=None, filters=None):

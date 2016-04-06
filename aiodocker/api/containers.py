@@ -1,11 +1,10 @@
 from aiohttp.hdrs import CONTENT_TYPE
 from aiodocker.api.registry import APIUnbound
 from aiodocker.api.errors import status_error
-from aiodocker.api.constants.schemas import CONFIG
+from aiodocker.api.constants.schemas import CREATE_CONTAINER
 from aiodocker.api.constants.http import (
     APPLICATION_JSON
 )
-from aiodocker.utils.schemas import schema_extract
 from aiodocker.utils.convention import snake_case
 from aiodocker.utils.url import build_url
 
@@ -151,8 +150,7 @@ class Containers(APIUnbound):
 
     @classmethod
     async def create(cls, config, name=None):
-        config = schema_extract(config, CONFIG)
-        validate(config, CONFIG)
+        validate(config, CREATE_CONTAINER)
 
         q = {}
         if name is not None:
@@ -169,7 +167,7 @@ class Containers(APIUnbound):
         async with req as res:
             if res.status != 201:
                 raise await status_error(res)
-            
+
             raw = await(res.json())
             return cls.api.Container(snake_case(raw)['id'], raw=raw)
 

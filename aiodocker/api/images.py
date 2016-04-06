@@ -1,7 +1,5 @@
 from aiodocker.api.registry import APIUnbound
 from aiodocker.api.errors import APIError, status_error
-from aiodocker.api.constants.schemas import CONFIG
-from aiodocker.utils.schemas import schema_extract
 from aiodocker.utils.convention import snake_case
 from aiodocker.utils.url import build_url
 

@@ -1,6 +1,7 @@
 from aiohttp.hdrs import CONTENT_TYPE
 from aiodocker.api.registry import APIUnbound
 from aiodocker.api.errors import status_error
+from aiodocker.api.constants.schemas import CREATE_VOLUME
 from aiodocker.api.constants.http import (
     APPLICATION_JSON
 )
@@ -72,11 +73,29 @@ class Volumes(APIUnbound):
 
     @classmethod
     async def remove(cls, name):
-        pass
+        req = cls.api.client.delete(build_url(PREFIX, name))
+        async with req as res:
+            if res.status != 200:
+                raise await status_error(res)
 
     @classmethod
     async def create(cls, config):
-        pass
+        validate(config, CREATE_VOLUME)
+
+        req = cls.api.client.post(
+            build_url(PREFIX, 'create'),
+            headers={
+                CONTENT_TYPE: APPLICATION_JSON
+            },
+            data=json.dumps(config)
+        )
+
+        async with req as res:
+            if res.status != 201:
+                raise await status_error(res)
+
+            raw = await(res.json())
+            return cls.api.Volume(snake_case(raw)['name'], raw=raw)
 
     @classmethod
     async def list(cls, dangling=False, filters=None):
@@ -93,5 +112,5 @@ class Volumes(APIUnbound):
             if res.status != 200:
                 raise await status_error(res)
             return [
-                cls.api.Volume(snake_case(raw)['name'], raw=raw) for raw in await res.json()
+                cls.api.Volume(snake_case(raw)['name'], raw=raw) for raw in (await res.json())['Volumes']
             ]
