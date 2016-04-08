@@ -6,10 +6,14 @@ import aiohttp
 
 class BaseClient(object, metaclass=abc.ABCMeta):
 
-    def __init__(self, host, *, loop=None):
+    def __init__(self, host, *, headers=None, loop=None):
         self.host = host
         self._loop = loop or asyncio.get_event_loop()
         self._connector = None
+        self._headers = dict(headers or {})
+
+    def set_headers(self, **headers):
+        self._headers = headers
 
     @abc.abstractmethod
     def new_connector(self, loop):
@@ -30,9 +34,14 @@ class BaseClient(object, metaclass=abc.ABCMeta):
         return self._connector
 
     def _client_kwargs(self, **kwargs):
+        headers = self._headers
+        if 'headers' in kwargs:
+            headers = dict(headers, **kwargs.pop('headers'))
+
         return dict(
             connector=self._get_connector(),
             loop=self._loop,
+            headers=headers,
             **kwargs
         )
 
