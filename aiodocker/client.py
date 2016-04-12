@@ -9,8 +9,7 @@ class BaseClient(object, metaclass=abc.ABCMeta):
     def __init__(self, host, *, headers=None, loop=None):
         self.host = host
         self._loop = loop or asyncio.get_event_loop()
-        self._connector = None
-        self._headers = dict(headers or {})
+        self._headers = headers or {}
 
     def set_headers(self, **headers):
         self._headers = headers
@@ -23,39 +22,31 @@ class BaseClient(object, metaclass=abc.ABCMeta):
     def resolve_url(self, url):
         pass
 
-    def close(self):
-        if self._connector is not None and not self._connector.closed:
-            self._loop.run_until_complete(self._connector.close())
-            self._connector = None
-
-    def _get_connector(self):
-        if self._connector is None or self._connector.closed:
-            self._connector = self.new_connector(self._loop)
-        return self._connector
-
-    def _client_kwargs(self, **kwargs):
+    def resolve_kwargs(self, **kwargs):
         headers = self._headers
         if 'headers' in kwargs:
             headers = dict(headers, **kwargs.pop('headers'))
 
         return dict(
-            connector=self._get_connector(),
-            loop=self._loop,
             headers=headers,
             **kwargs
         )
 
-    def request(self, method, url, **kwargs):
-        return aiohttp.request(
+    def _get_session(self, response_class=aiohttp.ClientResponse):
+        if response_class not in self._sessions:
+            self._sessions[response_class] = aiohttp.ClientSession(
+                connector=self._connector,
+                response_class=response_class,
+                loop=self._loop
+            )
+
+        return self._sessions[response_class]
+
+    def request(self, method, url, response_class=aiohttp.ClientResponse, **kwargs):
+        return self._get_session(response_class=response_class).request(
             method,
             self.resolve_url(url),
-            **self._client_kwargs(**kwargs)
-        )
-
-    def ws_connect(self, url, **kwargs):
-        return aiohttp.ws_connect(
-            self.resolve_url(url),
-            **self._client_kwargs(**kwargs)
+            **self.resolve_kwargs(**kwargs)
         )
 
     def get(self, url, **kwargs):
@@ -69,6 +60,25 @@ class BaseClient(object, metaclass=abc.ABCMeta):
 
     def delete(self, url, **kwargs):
         return self.request('DELETE', url, **kwargs)
+
+    def __enter__(self):
+        if hasattr(self, '_connector'):
+            raise Exception("Client is in use.")
+        self._connector = self.new_connector(loop=self._loop)
+        self._sessions = {}
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Close all sessions
+        for session in self._sessions.values():
+            # Detach connector, we will close it last
+            session.detach()
+            session.close()
+        # Close the connector
+        self._connector.close()
+        del self._connector
+        del self._sessions
+
 
 
 class TCPClient(BaseClient):
