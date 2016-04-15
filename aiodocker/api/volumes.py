@@ -112,5 +112,6 @@ class Volumes(APIUnbound):
             if res.status != 200:
                 raise await status_error(res)
             return [
-                cls.api.Volume(snake_case(raw)['name'], raw=raw) for raw in (await res.json())['Volumes']
+                cls.api.Volume(snake_case(raw)['name'], raw=raw)
+                for raw in ((await res.json()).get('Volumes', None) or [])
             ]
