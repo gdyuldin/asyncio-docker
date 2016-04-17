@@ -9,7 +9,6 @@ def build_url(*parts, **params):
 
 def query_string(**params):
     # Reduce to query string
-
     def parse(val):
         if not isinstance(val, (str, bytes)):
             val = json.dumps(val)

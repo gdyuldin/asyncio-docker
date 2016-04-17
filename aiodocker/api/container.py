@@ -260,6 +260,6 @@ class ExecStream(RegistryUnbound):
         return self
 
     async def __anext__(self):
-        header = await self._res.content.read(1000)
+        header = await self._res.content.read(8)
         if header is not None:
             return ''

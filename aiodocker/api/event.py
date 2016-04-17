@@ -67,7 +67,7 @@ class Event(RegistryUnbound):
 
     @classmethod
     def get(cls, since=None, until=None):
-         req = cls.registry.client.get('/events', response_class=EventStreamResponse)
+         req = cls.registry.client.get('/events')
          return cls.registry.EventStream(req)
 
     def __hash__(self):
@@ -89,10 +89,6 @@ class Event(RegistryUnbound):
     def __str__(self):
         return self.action
 
-
-class EventStreamResponse(aiohttp.ClientResponse):
-
-    flow_control_class = aiohttp.FlowControlChunksQueue
 
 
 class EventStream(RegistryUnbound):
@@ -117,7 +113,7 @@ class EventStream(RegistryUnbound):
         return self
 
     async def __anext__(self):
-        chunk = await self._res.content.read()
+        chunk = await self._res.content.readany()
         if chunk is not None:
             try:
                 raw = json.loads(chunk.decode(encoding='UTF-8'))
