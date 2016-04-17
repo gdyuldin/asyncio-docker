@@ -1,4 +1,4 @@
-from aiodocker.api.registry import APIUnbound
+from aiodocker.registry import RegistryUnbound
 from aiodocker.api.errors import APIError, status_error
 from aiodocker.utils.convention import snake_case
 from aiodocker.utils.url import build_url
@@ -11,7 +11,7 @@ import json
 PREFIX = 'images'
 
 
-class Image(APIUnbound):
+class Image(RegistryUnbound):
 
     def __init__(self, name, raw=None):
         self._name = name
@@ -26,37 +26,7 @@ class Image(APIUnbound):
         return AttrDict(self._raw or {})
 
     async def inspect(self):
-        return await self.api.Images.inspect(self.name)
-
-    @property
-    def name(self):
-        return self._name
-
-    def __hash__(self):
-        return hash(self.name)
-
-    def __eq__(self, other):
-        if isinstance(other, Image):
-            return self.name == other.name
-        return NotImplemented
-
-    def __ne__(self, other):
-        if isinstance(other, Image):
-            return self.name != other.name
-        return NotImplemented
-
-    def __repr__(self):
-        return 'Image <%s>' % self.name
-
-    def __str__(self):
-        return self.name
-
-
-class Images(APIUnbound):
-
-    @classmethod
-    async def inspect(cls, name):
-        req = cls.api.client.get(build_url(PREFIX, name, 'json'))
+        req = self.client.get(build_url(PREFIX, self.name, 'json'))
         async with req as res:
             if res.status != 200:
                 raise await status_error(res)
@@ -80,7 +50,7 @@ class Images(APIUnbound):
         if tag is not None:
             q['tag'] = tag
 
-        req = cls.api.client.post(
+        req = cls.client.post(
             build_url(PREFIX, 'create', **q)
         )
 
@@ -114,10 +84,33 @@ class Images(APIUnbound):
         if all is not None:
             q['all'] = '1' if all else '0'
 
-        req = cls.api.client.get(build_url(PREFIX, 'json', **q))
+        req = cls.client.get(build_url(PREFIX, 'json', **q))
         async with req as res:
             if res.status != 200:
                 raise await status_error(res)
             return [
-                cls.api.Image(snake_case(raw)['name'], raw=raw) for raw in await res.json()
+                cls(snake_case(raw)['name'], raw=raw) for raw in await res.json()
             ]
+
+    @property
+    def name(self):
+        return self._name
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        if isinstance(other, Image):
+            return self.name == other.name
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, Image):
+            return self.name != other.name
+        return NotImplemented
+
+    def __repr__(self):
+        return 'Image <%s>' % self.name
+
+    def __str__(self):
+        return self.name

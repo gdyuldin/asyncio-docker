@@ -1,5 +1,5 @@
 from aiohttp.hdrs import CONTENT_TYPE
-from aiodocker.api.registry import APIUnbound
+from aiodocker.registry import RegistryUnbound
 from aiodocker.api.errors import status_error
 from aiodocker.api.constants.schemas import CREATE_VOLUME
 from aiodocker.api.constants.http import (
@@ -17,7 +17,7 @@ import json
 PREFIX = 'volumes'
 
 
-class Volume(APIUnbound):
+class Volume(RegistryUnbound):
 
     def __init__(self, name, raw=None):
         self._name = name
@@ -32,10 +32,55 @@ class Volume(APIUnbound):
         return AttrDict(self._raw or {})
 
     async def inspect(self):
-        return await self.api.Volumes.inspect(self.name)
+        req = self.client.get(build_url(PREFIX, self.name))
+        async with req as res:
+            if res.status != 200:
+                raise await status_error(res)
+            return AttrDict(**await(res.json()))
 
     async def remove(self):
-        await self.api.Volumes.remove(self.name)
+        req = self.client.delete(build_url(PREFIX, self.name))
+        async with req as res:
+            if res.status != 200:
+                raise await status_error(res)
+
+    @classmethod
+    async def create(cls, config):
+        validate(config, CREATE_VOLUME)
+
+        req = cls.client.post(
+            build_url(PREFIX, 'create'),
+            headers={
+                CONTENT_TYPE: APPLICATION_JSON
+            },
+            data=json.dumps(config)
+        )
+
+        async with req as res:
+            if res.status != 201:
+                raise await status_error(res)
+
+            raw = await(res.json())
+            return cls(snake_case(raw)['name'], raw=raw)
+
+    @classmethod
+    async def list(cls, dangling=False, filters=None):
+        filters = filters or {}
+        if dangling:
+            filters['dangling'] = True
+
+        q = {}
+        if filters:
+            q['filters'] = filters
+
+        req = cls.client.get(build_url(PREFIX, **q))
+        async with req as res:
+            if res.status != 200:
+                raise await status_error(res)
+            return [
+                cls(snake_case(raw)['name'], raw=raw)
+                for raw in ((await res.json()).get('Volumes', None) or [])
+            ]
 
     @property
     def name(self):
@@ -59,59 +104,3 @@ class Volume(APIUnbound):
 
     def __str__(self):
         return self.name
-
-
-class Volumes(APIUnbound):
-
-    @classmethod
-    async def inspect(cls, name):
-        req = cls.api.client.get(build_url(PREFIX, name))
-        async with req as res:
-            if res.status != 200:
-                raise await status_error(res)
-            return AttrDict(**await(res.json()))
-
-    @classmethod
-    async def remove(cls, name):
-        req = cls.api.client.delete(build_url(PREFIX, name))
-        async with req as res:
-            if res.status != 200:
-                raise await status_error(res)
-
-    @classmethod
-    async def create(cls, config):
-        validate(config, CREATE_VOLUME)
-
-        req = cls.api.client.post(
-            build_url(PREFIX, 'create'),
-            headers={
-                CONTENT_TYPE: APPLICATION_JSON
-            },
-            data=json.dumps(config)
-        )
-
-        async with req as res:
-            if res.status != 201:
-                raise await status_error(res)
-
-            raw = await(res.json())
-            return cls.api.Volume(snake_case(raw)['name'], raw=raw)
-
-    @classmethod
-    async def list(cls, dangling=False, filters=None):
-        filters = filters or {}
-        if dangling:
-            filters['dangling'] = True
-
-        q = {}
-        if filters:
-            q['filters'] = filters
-
-        req = cls.api.client.get(build_url(PREFIX, **q))
-        async with req as res:
-            if res.status != 200:
-                raise await status_error(res)
-            return [
-                cls.api.Volume(snake_case(raw)['name'], raw=raw)
-                for raw in ((await res.json()).get('Volumes', None) or [])
-            ]

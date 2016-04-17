@@ -88,8 +88,20 @@ class TCPClient(BaseClient):
 
     def resolve_url(self, url):
         o = urlsplit(self.host)
-        n = o[:2] + tuple([urljoin(o[2], url)]) + o[3:]
+        n = o[:2] + (urljoin(o[2], url),) + o[3:]
         return urlunsplit(n)
+
+
+class HTTPClient(TCPClient):
+
+    def new_connector(self, loop):
+        kwargs = {}
+        o = urlsplit(self.host)
+        if o[0] == 'https':
+            kwargs.update({
+                'verify_ssl': False
+            })
+        return aiohttp.TCPConnector(loop=loop, **kwargs)
 
 
 class UnixClient(BaseClient):
@@ -98,6 +110,8 @@ class UnixClient(BaseClient):
 
 _clients = {
     'tcp': TCPClient,
+    'http': HTTPClient,
+    'https': HTTPClient,
     'unix': UnixClient
 }
 
