@@ -7,6 +7,8 @@ from aiodocker.api.constants.http import (
 from aiodocker.utils.convention import snake_case
 from aiodocker.utils.url import build_url
 
+import aiohttp
+import struct
 from aiohttp.hdrs import CONTENT_TYPE
 from attrdict import AttrDict
 from jsonschema import validate, ValidationError
@@ -260,6 +262,35 @@ class ExecStream(RegistryUnbound):
         return self
 
     async def __anext__(self):
-        header = await self._res.content.read(8)
-        if header is not None:
-            return ''
+        content_type = self._res.headers[CONTENT_TYPE]
+        try:
+            header = await self._res.content.read(8)
+            if not header:
+                raise StopAsyncIteration
+            typ, length = struct.unpack('>BxxxL', header)
+            
+            data = await self._res.content.read(length)
+            typ = {
+                0: 'stdin',
+                1: 'stdout',
+                2: 'stderr'
+            }.get(typ, None)
+
+            if content_type == 'application/vnd.docker.raw-stream':
+                return {
+                    'type': typ,
+                    'msg': str(data, 'utf-8')
+                }
+            elif content_type == 'application/json':
+                return {
+                    'type': typ,
+                    'payload': json.loads(str(data, 'utf-8'))
+                }
+            else:
+                return {
+                    'type': typ,
+                    'raw': str(data, 'utf-8')
+                }
+
+        except aiohttp.EofStream:
+            raise StopAsyncIteration
