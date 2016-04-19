@@ -4,3 +4,4 @@ from .image import *
 from .network import *
 from .volume import *
 from .event import *
+from .exec import *
