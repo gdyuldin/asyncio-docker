@@ -66,6 +66,8 @@ class Image(RegistryUnbound):
                 if 'error' in last_status:
                     raise APIError(last_status['error'])
 
+            return cls(from_image)
+
     @classmethod
     async def list(cls, all=None, labels=None, filters=None, filter=None):
         filters = filters or {}
