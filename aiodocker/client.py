@@ -61,14 +61,13 @@ class BaseClient(object, metaclass=abc.ABCMeta):
     def delete(self, url, **kwargs):
         return self.request('DELETE', url, **kwargs)
 
-    def __enter__(self):
+    def open(self):
         if hasattr(self, '_connector'):
             raise Exception("Client is in use.")
         self._connector = self.new_connector(loop=self._loop)
         self._sessions = {}
-        return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def close(self):
         # Close all sessions
         for session in self._sessions.values():
             # Detach connector, we will close it last
@@ -78,6 +77,13 @@ class BaseClient(object, metaclass=abc.ABCMeta):
         self._connector.close()
         del self._connector
         del self._sessions
+
+    def __enter__(self):
+        self.open()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
 
 

@@ -33,8 +33,7 @@ class Image(RegistryUnbound):
             return AttrDict(**await(res.json()))
 
     @classmethod
-    async def create(cls, from_image=None, from_src=None, repo=None,
-            tag=None):
+    async def create(cls, from_image=None, from_src=None, repo=None, tag=None):
 
         if (from_image is None and from_src is None or from_image is not None
                 and from_src is not None):
@@ -91,7 +90,7 @@ class Image(RegistryUnbound):
             if res.status != 200:
                 raise await status_error(res)
             return [
-                cls(snake_case(raw)['name'], raw=raw) for raw in await res.json()
+                cls(snake_case(raw)['id'], raw=raw) for raw in await res.json()
             ]
 
     @property
