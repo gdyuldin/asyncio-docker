@@ -41,7 +41,7 @@ class Volume(RegistryUnbound):
     async def remove(self):
         req = self.client.delete(build_url(PREFIX, self.name))
         async with req as res:
-            if res.status != 200:
+            if res.status != 204:
                 raise await status_error(res)
 
     @classmethod

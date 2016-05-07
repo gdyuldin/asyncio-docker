@@ -82,8 +82,14 @@ class Container(RegistryUnbound):
             if res.status != 204:
                 raise await status_error(res)
 
-    async def remove(self, remove_volumes=None, force=None):
-        req = self.client.delete(build_url(PREFIX, self.id))
+    async def remove(self, remove_volumes=False, force=False):
+
+        q = {
+            'v': '1' if remove_volumes else '0',
+            'force': '1' if force else '0'
+        }
+
+        req = self.client.delete(build_url(PREFIX, self.id, **q))
         async with req as res:
             if res.status != 204:
                 raise await status_error(res)

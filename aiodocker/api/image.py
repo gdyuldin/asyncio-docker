@@ -32,6 +32,18 @@ class Image(RegistryUnbound):
                 raise await status_error(res)
             return AttrDict(**await(res.json()))
 
+    async def remove(self, no_prune=False, force=False):
+
+        q = {
+            'noprune': '1' if no_prune else '0',
+            'force': '1' if force else '0'
+        }
+
+        req = self.client.delete(build_url(PREFIX, self.name, **q))
+        async with req as res:
+            if res.status != 200:
+                raise await status_error(res)
+
     @classmethod
     async def create(cls, from_image=None, from_src=None, repo=None, tag=None):
 
@@ -68,12 +80,18 @@ class Image(RegistryUnbound):
             return cls(from_image)
 
     @classmethod
-    async def list(cls, all=None, labels=None, filters=None, filter=None):
+    async def list(cls, all=None, labels=None, dangling=False, filters=None,
+            filter=None):
+
         filters = filters or {}
+
         for label, val in (labels or {}).items():
             filters['label'] = filters.get('label', []) + [
                 '%s=%s' % (label, val) if val else label
             ]
+
+        if dangling:
+            filters['dangling'] = ['true']
 
         q = {}
         if filters:
