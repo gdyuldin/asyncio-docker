@@ -115,6 +115,12 @@ class Image(RegistryUnbound):
     def name(self):
         return self._name
 
+    @property
+    def is_dangling(self):
+        if 'repo_tags' in self.data:
+            return '<none>:<none>' in self.data.repo_tags
+        return False
+
     def __hash__(self):
         return hash(self.name)
 
