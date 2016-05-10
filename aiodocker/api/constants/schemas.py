@@ -72,116 +72,116 @@ IPAM_CONFIG = {
 
 CREATE_CONTAINER = {
     'type': 'object',
-    'properties': OrderedDict(
-        Hostname={
+    'properties': OrderedDict([
+        ('Hostname', {
             'type': 'string'
-        },
-        Domainname={
+        }),
+        ('Domainname', {
             'type': 'string'
-        },
-        User={
+        }),
+        ('User', {
             'type': 'string',
             'description': "User that will run the command(s) inside the container",
-        },
-        AttachStdin={
+        }),
+        ('AttachStdin', {
             'type': 'boolean',
             'description': "Attach the standard input, makes possible user interaction",
-        },
-        AttachStdout={
+        }),
+        ('AttachStdout', {
             'type': 'boolean',
             'description': "Attach the standard output",
-        },
-        AttachStderr={
+        }),
+        ('AttachStderr', {
             'type': 'boolean',
             'description': "Attach the standard error",
-        },
-        ExposedPorts={
+        }),
+        ('ExposedPorts', {
             'type': 'object',
             'patternProperties': {
                 PORT: {
                     'type': 'object'
                 }
             }
-        },
-        PublishService={
+        }),
+        ('PublishService', {
             'type': 'string',
             'description': "Name of the network service exposed by the container",
-        },
-        Tty={
+        }),
+        ('Tty', {
             'type': 'boolean',
             'description': "Attach standard streams to a tty, including stdin if it is not closed.",
-        },
-        OpenStdin={
+        }),
+        ('OpenStdin', {
             'type': 'boolean',
             'description': "Open stdin"
-        },
-        StdinOnce={
+        }),
+        ('StdinOnce', {
             'type': 'boolean',
             'description': "If true, close stdin after the 1 attached client disconnects."
-        },
-        Env={
+        }),
+        ('Env', {
             'type': 'array',
             'items': {
                 'type': 'string'
             },
             'description': "List of environment variable to set in the container"
-        },
-        Cmd={
+        }),
+        ('Cmd', {
             'type': ['string', 'array'],
             'items': {
                 'type': 'string'
             },
             'description': "Command to run when starting the container"
-        },
-        ArgsEscaped={
+        }),
+        ('ArgsEscaped', {
             'type': 'boolean',
             'description': "True if command is already escaped (Windows specific)"
-        },
-        Image={
+        }),
+        ('Image', {
             'type': 'string',
             'description': "Name of the image as it was passed by the operator (eg. could be symbolic)"
-        },
-        Volumes={
+        }),
+        ('Volumes', {
             'type': 'object',
             'patternProperties': {
                 '^': {
                     'type': 'object'
                 }
             }
-        },
-        WorkingDir={
+        }),
+        ('WorkingDir', {
             'type': 'string',
             'description': "Current directory (PWD) in the command will be launched"
-        },
-        Entrypoint={
+        }),
+        ('Entrypoint', {
             'type': ['string', 'array'],
             'items': {
                 'type': 'string'
             },
             'description': "Entrypoint to run when starting the container"
-        },
-        NetworkDisabled={
+        }),
+        ('NetworkDisabled', {
             'type': 'boolean',
             'description': "Is network disabled"
-        },
-        MacAddress={
+        }),
+        ('MacAddress', {
             'type': 'string',
             'description': "Mac Address of the container"
-        },
-        OnBuild={
+        }),
+        ('OnBuild', {
             'type': 'array',
             'items': {
                 'type': 'string'
             },
             'description': "ONBUILD metadata that were defined on the image Dockerfile"
-        },
-        StopSignal={
+        }),
+        ('StopSignal', {
             'type': 'string',
             'description': "Signal to stop a container"
-        },
-        Labels=STRING_MAP,
-        HostConfig=HOST_CONFIG
-    ),
+        }),
+        ('Labels', STRING_MAP),
+        ('HostConfig', HOST_CONFIG)
+    ]),
     'additionalProperties': False,
     'required': [
         'Image'
