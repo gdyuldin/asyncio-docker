@@ -1,0 +1,15 @@
+sudo: required
+language: python
+
+python:
+  - "3.5"
+
+services:
+  - docker
+
+install:
+  - pip install -r dev_requirements.txt --use-mirrors
+  - python setup.py develop
+
+script:
+  - nose2

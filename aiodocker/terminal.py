@@ -7,6 +7,7 @@ import tty
 class TerminalExit(Exception):
     pass
 
+
 class Terminal(object):
 
     def __init__(self, stream, stdin=None, stdout=None, stderr=None, loop=None):
