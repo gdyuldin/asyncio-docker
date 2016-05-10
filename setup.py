@@ -5,14 +5,14 @@ from setuptools import setup, find_packages
 from distutils.sysconfig import get_python_lib
 
 _is_setup = True
-version = __import__('aiodocker').get_version()
+version = __import__('asyncio_docker').get_version()
 
 EXCLUDE_FROM_PACKAGES = [
 
 ]
 
 setup(
-    name='aiodocker',
+    name='asyncio-docker',
     version=version,
     url='http://www.adaptiv.nl/',
     author='Raymond Reggers - Adaptiv Design',

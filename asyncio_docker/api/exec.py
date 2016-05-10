@@ -1,10 +1,10 @@
-from aiodocker.registry import RegistryUnbound
-from aiodocker.api.errors import status_error
-from aiodocker.api.constants.http import (
+from asyncio_docker.registry import RegistryUnbound
+from asyncio_docker.api.errors import status_error
+from asyncio_docker.api.constants.http import (
     APPLICATION_JSON
 )
-from aiodocker.utils.convention import snake_case
-from aiodocker.utils.url import build_url
+from asyncio_docker.utils.convention import snake_case
+from asyncio_docker.utils.url import build_url
 
 from aiohttp import EofStream
 from aiohttp.hdrs import CONTENT_TYPE

@@ -1,7 +1,7 @@
-from aiodocker.registry import RegistryUnbound
-from aiodocker.api.errors import status_error
-from aiodocker.api.constants.types import CONTAINER, IMAGE, NETWORK, VOLUME
-from aiodocker.utils.convention import snake_case
+from asyncio_docker.registry import RegistryUnbound
+from asyncio_docker.api.errors import status_error
+from asyncio_docker.api.constants.types import CONTAINER, IMAGE, NETWORK, VOLUME
+from asyncio_docker.utils.convention import snake_case
 
 from attrdict import AttrDict
 import aiohttp

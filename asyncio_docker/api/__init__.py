@@ -1,4 +1,4 @@
-from aiodocker.registry import Registry as API
+from asyncio_docker.registry import Registry as API
 from .container import *
 from .image import *
 from .network import *

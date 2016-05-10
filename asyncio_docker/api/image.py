@@ -1,7 +1,7 @@
-from aiodocker.registry import RegistryUnbound
-from aiodocker.api.errors import APIError, status_error
-from aiodocker.utils.convention import snake_case
-from aiodocker.utils.url import build_url
+from asyncio_docker.registry import RegistryUnbound
+from asyncio_docker.api.errors import APIError, status_error
+from asyncio_docker.utils.convention import snake_case
+from asyncio_docker.utils.url import build_url
 
 from attrdict import AttrDict
 from jsonschema import validate, ValidationError
