@@ -2,17 +2,17 @@ language: python
 python:
   - "3.5"
 
-sudo: required
+sudo: false
 
 services:
   - docker
 
 before_install:
-  - sudo service docker stop
+  - service docker stop
 
 install:
   - pip install -r dev_requirements.txt
   - pip install .
 
 script:
-  - sudo nose2
+  - nose2
