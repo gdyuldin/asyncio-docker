@@ -7,9 +7,13 @@ import aiohttp
 class BaseClient(object, metaclass=abc.ABCMeta):
 
     def __init__(self, host, *, headers=None, loop=None):
-        self.host = host
+        self._host = host
         self._loop = loop or asyncio.get_event_loop()
         self._headers = headers or {}
+
+    @property
+    def host(self):
+        return self._host
 
     def set_headers(self, **headers):
         self._headers = headers
@@ -89,8 +93,20 @@ class BaseClient(object, metaclass=abc.ABCMeta):
 
 class TCPClient(BaseClient):
 
+    def __init__(self, host, *, tls=False, tls_verify=False,
+            tls_cert=None, tls_key=None, tls_ca_cert=None,
+            **kwargs):
+
+        super(TCPClient, self).__init__(host, **kwargs)
+        self._tls = tls
+        self._tls_verify = tls_verify
+        self._tls_cert = tls_cert
+        self._tls_key = tls_key
+        self._tls_ca_cert = tls_ca_cert
+
     def new_connector(self, loop):
-        return aiohttp.TCPConnector(loop=loop)
+        verify_ssl = self._tls_verify
+        return aiohttp.TCPConnector(verify_ssl=verify_ssl, loop=loop)
 
     def resolve_url(self, url):
         o = urlsplit(self.host)
@@ -98,26 +114,20 @@ class TCPClient(BaseClient):
         return urlunsplit(n)
 
 
-class HTTPClient(TCPClient):
+class UnixClient(BaseClient):
 
     def new_connector(self, loop):
-        kwargs = {}
         o = urlsplit(self.host)
-        if o[0] == 'https':
-            kwargs.update({
-                'verify_ssl': False
-            })
-        return aiohttp.TCPConnector(loop=loop, **kwargs)
+        return aiohttp.UnixConnector(path=o[2], loop=loop)
 
-
-class UnixClient(BaseClient):
-    pass
+    def resolve_url(self, url):
+        o = urlsplit('http://localhost')
+        n = o[:2] + (urljoin(o[2], url),) + o[3:]
+        return urlunsplit(n)
 
 
 _clients = {
     'tcp': TCPClient,
-    'http': HTTPClient,
-    'https': HTTPClient,
     'unix': UnixClient
 }
 
