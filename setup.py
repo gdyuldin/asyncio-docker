@@ -7,9 +7,6 @@ from distutils.sysconfig import get_python_lib
 _is_setup = True
 version = __import__('asyncio_docker').get_version()
 
-EXCLUDE_FROM_PACKAGES = [
-
-]
 
 setup(
     name='asyncio-docker',
@@ -17,9 +14,11 @@ setup(
     url='http://www.adaptiv.nl/',
     author='Raymond Reggers - Adaptiv Design',
     author_email='raymond@adaptiv.nl',
-    description=('AsyncIO Docker Client'),
-    license='BSD',
-    packages=find_packages(exclude=EXCLUDE_FROM_PACKAGES),
+    description=('Asyncio Docker Client'),
+    license='Apache Software License',
+    packages=find_packages(exclude=[
+
+    ]),
     include_package_data=True,
     install_requires=[
         'aiohttp',
@@ -33,4 +32,6 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
-    ], )
+        'License :: OSI Approved :: Apache Software License',
+    ],
+)

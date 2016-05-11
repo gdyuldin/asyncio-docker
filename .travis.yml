@@ -1,15 +1,15 @@
-sudo: required
 language: python
-
 python:
   - "3.5"
+
+sudo: false
 
 services:
   - docker
 
 install:
   - pip install -r dev_requirements.txt
-  - python setup.py develop
+  - pip install .
 
 script:
   - nose2
