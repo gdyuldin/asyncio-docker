@@ -1,4 +1,5 @@
 from urllib.parse import urlsplit, urlunsplit, urljoin
+import ssl
 import asyncio
 import abc
 import aiohttp
@@ -6,7 +7,7 @@ import aiohttp
 
 class BaseClient(object, metaclass=abc.ABCMeta):
 
-    def __init__(self, host, *, headers=None, loop=None):
+    def __init__(self, host, *, headers=None, loop=None, **kwargs):
         self._host = host
         self._loop = loop or asyncio.get_event_loop()
         self._headers = headers or {}
@@ -93,7 +94,7 @@ class BaseClient(object, metaclass=abc.ABCMeta):
 
 class TCPClient(BaseClient):
 
-    def __init__(self, host, *, tls=False, tls_verify=False,
+    def __init__(self, host, *, tls=False, tls_verify=True,
             tls_cert=None, tls_key=None, tls_ca_cert=None,
             **kwargs):
 
@@ -105,23 +106,48 @@ class TCPClient(BaseClient):
         self._tls_ca_cert = tls_ca_cert
 
     def new_connector(self, loop):
-        verify_ssl = self._tls_verify
-        return aiohttp.TCPConnector(verify_ssl=verify_ssl, loop=loop)
+        kwargs = {}
+        if self._tls:
+            ssl_context = ssl.create_default_context(
+                purpose=ssl.Purpose.SERVER_AUTH
+            )
+
+            if self._tls_ca_cert:
+                ssl_context.load_verify_locations(cafile=self._tls_ca_cert)
+
+            if not self._tls_verify:
+                ssl_context.check_hostname = False
+                ssl_context.verify_mode = ssl.CERT_NONE
+
+            if self._tls_cert:
+                ssl_context.load_cert_chain(self._tls_cert, self._tls_key)
+
+            kwargs.update({
+                'ssl_context': ssl_context
+            })
+
+        return aiohttp.TCPConnector(loop=loop, **kwargs)
 
     def resolve_url(self, url):
         o = urlsplit(self.host)
-        n = o[:2] + (urljoin(o[2], url),) + o[3:]
+        scheme = 'https' if self._tls else 'http'
+        n = (scheme,) + o[1:2] + (urljoin(o[2], url),) + o[3:]
         return urlunsplit(n)
 
 
 class UnixClient(BaseClient):
 
+    HOST = 'http://localhost'
+
+    def __init__(self, host, **kwargs):
+        super(UnixClient, self).__init__(self.HOST, **kwargs)
+        self._path = urlsplit(host)[2]
+
     def new_connector(self, loop):
-        o = urlsplit(self.host)
-        return aiohttp.UnixConnector(path=o[2], loop=loop)
+        return aiohttp.UnixConnector(path=self._path, loop=loop)
 
     def resolve_url(self, url):
-        o = urlsplit('http://localhost')
+        o = urlsplit(self.host)
         n = o[:2] + (urljoin(o[2], url),) + o[3:]
         return urlunsplit(n)
 

@@ -10,6 +10,7 @@ services:
 install:
   - pip install -r dev_requirements.txt
   - pip install .
+  - ./generate_certs.sh
 
 script:
   - sudo service docker stop
