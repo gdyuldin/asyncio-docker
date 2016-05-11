@@ -19,12 +19,14 @@ class DockerDaemonContext(object):
         loop = asyncio.get_event_loop()
 
         # Wait for startup
+        await asyncio.wait_for(self._wait_startup(), 30)
+        return self
+
+    async def _wait_startup(self):
         while True:
             line = await self._process.stdout.readline()
             if b'API listen on' in line:
                 break
-
-        return self
 
     async def close(self):
         self._process.terminate()
