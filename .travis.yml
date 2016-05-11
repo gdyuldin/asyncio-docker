@@ -2,7 +2,7 @@ language: python
 python:
   - "3.5"
 
-sudo: false
+sudo: required
 
 services:
   - docker
@@ -12,5 +12,5 @@ install:
   - pip install .
 
 script:
-  - service docker stop
-  - nose2
+  - sudo service docker stop
+  - sudo /home/travis/virtualenv/python3.5/bin/nose2
