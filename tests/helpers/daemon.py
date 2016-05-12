@@ -1,17 +1,13 @@
 import asyncio
 from asyncio import subprocess
 
-from asyncio_docker.client import factory
-
 from .env import (
     DOCKER_HOST,
     DOCKER_TLS_HOST,
     DOCKER_SOCKET,
     TLS_CA_CERT,
     TLS_SERVER_CERT,
-    TLS_SERVER_KEY,
-    TLS_CLIENT_CERT,
-    TLS_CLIENT_KEY
+    TLS_SERVER_KEY
 )
 
 
@@ -52,7 +48,7 @@ class DockerDaemonContext(object):
         if self._tls_key:
             command.extend(['--tlskey', self._tls_key])
 
-        print("Running %s" % ' '.join(command))
+        print("Starting [%s]" % ' '.join(command))
         self._process = await asyncio.create_subprocess_exec(
             *command,
             stdout=subprocess.PIPE,
@@ -69,7 +65,6 @@ class DockerDaemonContext(object):
             # Read all lines timeout after a second
             try:
                 line = await asyncio.wait_for(self._process.stdout.readline(), 3)
-                print(str(line))
             except asyncio.TimeoutError:
                 # Wait is over
                 return
@@ -82,7 +77,7 @@ class DockerDaemonContext(object):
         )
 
         await clean.wait()
-        
+
         self._process.terminate()
         await self._process.wait()
 
@@ -94,8 +89,6 @@ class DockerDaemonContext(object):
 
 
 TCP_DAEMON = DockerDaemonContext(DOCKER_HOST)
-TCP_CLIENT = factory(DOCKER_HOST)(DOCKER_HOST)
-
 TCP_TLS_DAEMON = DockerDaemonContext(
     DOCKER_TLS_HOST,
     tls_verify=True,
@@ -104,14 +97,10 @@ TCP_TLS_DAEMON = DockerDaemonContext(
     tls_key=TLS_SERVER_KEY,
 )
 
-TCP_TLS_CLIENT = factory(DOCKER_TLS_HOST)(
-    DOCKER_TLS_HOST,
-    tls=True,
-    tls_verify=True,
-    tls_ca_cert=TLS_CA_CERT,
-    tls_cert=TLS_CLIENT_CERT,
-    tls_key=TLS_CLIENT_KEY
-)
-
 UNIX_DAEMON = DockerDaemonContext(DOCKER_SOCKET)
-UNIX_CLIENT = factory(DOCKER_SOCKET)(DOCKER_SOCKET)
+
+DAEMONS = [
+    TCP_DAEMON,
+    TCP_TLS_DAEMON,
+    UNIX_DAEMON
+]
