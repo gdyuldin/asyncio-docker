@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from asyncio import subprocess
 
 from .env import (
@@ -11,7 +12,10 @@ from .env import (
 )
 
 
-class DockerDaemonContext(object):
+logger = logging.getLogger('nose2.plugins.daemon')
+
+
+class DockerDaemon(object):
 
     def __init__(self, host, tls_verify=False, tls_ca_cert=None,
             tls_cert=None, tls_key=None):
@@ -48,7 +52,7 @@ class DockerDaemonContext(object):
         if self._tls_key:
             command.extend(['--tlskey', self._tls_key])
 
-        print("Starting [%s]" % ' '.join(command))
+        logger.info("Starting [%s]" % ' '.join(command))
         self._process = await asyncio.create_subprocess_exec(
             *command,
             stdout=subprocess.PIPE,
@@ -88,19 +92,17 @@ class DockerDaemonContext(object):
         await self.close()
 
 
-TCP_DAEMON = DockerDaemonContext(DOCKER_HOST)
-TCP_TLS_DAEMON = DockerDaemonContext(
-    DOCKER_TLS_HOST,
-    tls_verify=True,
-    tls_ca_cert=TLS_CA_CERT,
-    tls_cert=TLS_SERVER_CERT,
-    tls_key=TLS_SERVER_KEY,
-)
+def tcp_daemon():
+    return DockerDaemon(DOCKER_HOST)
 
-UNIX_DAEMON = DockerDaemonContext(DOCKER_SOCKET)
+def tcp_tls_daemon():
+    return DockerDaemon(
+        DOCKER_TLS_HOST,
+        tls_verify=True,
+        tls_ca_cert=TLS_CA_CERT,
+        tls_cert=TLS_SERVER_CERT,
+        tls_key=TLS_SERVER_KEY,
+    )
 
-DAEMONS = [
-    TCP_DAEMON,
-    TCP_TLS_DAEMON,
-    UNIX_DAEMON
-]
+def unix_daemon():
+    return DockerDaemon(DOCKER_SOCKET)

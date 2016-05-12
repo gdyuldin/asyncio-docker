@@ -5,6 +5,10 @@ import abc
 import aiohttp
 
 
+class ClientError(Exception):
+    pass
+
+
 class BaseClient(object, metaclass=abc.ABCMeta):
 
     def __init__(self, host, *, headers=None, loop=None, **kwargs):
@@ -38,6 +42,9 @@ class BaseClient(object, metaclass=abc.ABCMeta):
         )
 
     def _get_session(self, response_class=aiohttp.ClientResponse):
+        if self.is_closed():
+            raise ClientError("Cannot get a session, client is closed")
+
         if response_class not in self._sessions:
             self._sessions[response_class] = aiohttp.ClientSession(
                 connector=self._connector,
@@ -67,12 +74,19 @@ class BaseClient(object, metaclass=abc.ABCMeta):
         return self.request('DELETE', url, **kwargs)
 
     def open(self):
-        if hasattr(self, '_connector'):
-            raise Exception("Client is in use.")
+        if not self.is_closed():
+            raise ClientError("Client needs to be closed before it can be opened")
+
         self._connector = self.new_connector(loop=self._loop)
         self._sessions = {}
 
+    def is_closed(self):
+        return not hasattr(self, '_connector')
+
     def close(self):
+        if self.is_closed():
+            raise ClientError("Client is already closed")
+
         # Close all sessions
         for session in self._sessions.values():
             # Detach connector, we will close it last

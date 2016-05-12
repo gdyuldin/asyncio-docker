@@ -1,41 +1,50 @@
 import unittest
 
-from nose2.tools import such
 from nose2.tools.params import params
 
 from helpers import aio
-from helpers.daemon import DAEMONS
-from helpers.client import CLIENTS
+from helpers.daemons import tcp_daemon, tcp_tls_daemon, unix_daemon
+from helpers.clients import tcp_client, tcp_tls_client, unix_client
+
+from asyncio_docker.client import ClientError
 
 
-with such.A("client") as it:
-    it.uses(SomeLayer)
-    with it.having('an expensive fixture'):
+class ClientTestCase(unittest.TestCase):
 
-        @it.should("do this")
-        def do_this(case):
-            print(case)
+    def test_open(self):
+        client = tcp_client()
+        with client:
+            self.assertFalse(client.is_closed())
 
-        """
-        @it.has_setup
-        @aio.run_until_complete()
-        @params(daemon)
-        async def setup(daemon):
-            await daemon.open()
+    def test_closed(self):
+        client = tcp_client()
+        self.assertTrue(client.is_closed())
+        with client:
+            pass
+        self.assertTrue(client.is_closed())
 
-        @it.should("connect")
-        @aio.run_until_complete()
-        @params(client)
-        async def connect(case, client):
-            with client as session:
-                async with session.get('/') as res:
-                    assert res.status == 404
+    def test_closed_request(self):
+        client = tcp_client()
+        with self.assertRaises(ClientError):
+            client.get('/')
 
-        @it.has_teardown
-        @aio.run_until_complete()
-        @params(daemon)
-        async def teardown(daemon):
-            await daemon.close()
-            """
+    @aio.run_until_complete(30)
+    async def test_tcp_connection(self):
+        async with tcp_daemon() as daemon:
+            with tcp_client() as client:
+                async with client.get('/') as res:
+                    self.assertEqual(res.status, 404)
 
-it.createTests(globals())
+    @aio.run_until_complete(30)
+    async def test_tcp_tls_connection(self):
+        async with tcp_tls_daemon() as daemon:
+            with tcp_tls_client() as client:
+                async with client.get('/') as res:
+                    self.assertEqual(res.status, 404)
+
+    @aio.run_until_complete(30)
+    async def test_unix_connection(self):
+        async with unix_daemon() as daemon:
+            with unix_client() as client:
+                async with client.get('/') as res:
+                    self.assertEqual(res.status, 404)
