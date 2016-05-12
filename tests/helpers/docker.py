@@ -34,6 +34,12 @@ class DockerDaemonContext(object):
             self._host,
         ]
 
+        if self._host != DOCKER_SOCKET:
+            command.extend([
+                "-H",
+                DOCKER_SOCKET
+            ])
+
         if self._tls_verify:
             command.extend(['--tlsverify'])
 
@@ -46,6 +52,7 @@ class DockerDaemonContext(object):
         if self._tls_key:
             command.extend(['--tlskey', self._tls_key])
 
+        print("Running %s" % ' '.join(command))
         self._process = await asyncio.create_subprocess_exec(
             *command,
             stdout=subprocess.PIPE,
@@ -53,19 +60,29 @@ class DockerDaemonContext(object):
         )
         loop = asyncio.get_event_loop()
 
-        # Wait for startup
-        print("Running %s" % ' '.join(command))
+        # Wait for startup, at max 30 seconds
         await asyncio.wait_for(self._wait_startup(), 30)
         return self
 
     async def _wait_startup(self):
         while True:
-            line = await self._process.stdout.readline()
-            print(str(line))
-            if b'API listen on' in line:
-                break
+            # Read all lines timeout after a second
+            try:
+                line = await asyncio.wait_for(self._process.stdout.readline(), 3)
+                print(str(line))
+            except asyncio.TimeoutError:
+                # Wait is over
+                return
 
     async def close(self):
+        clean = await asyncio.create_subprocess_exec(
+            'docker-clean',
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+
+        await clean.wait()
+        
         self._process.terminate()
         await self._process.wait()
 

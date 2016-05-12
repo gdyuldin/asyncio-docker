@@ -8,10 +8,8 @@ services:
   - docker
 
 install:
-  - pip install -r dev_requirements.txt
-  - pip install .
-  - ./generate_certs.sh
+  - make dev-install
 
 script:
   - sudo service docker stop
-  - sudo /home/travis/virtualenv/python3.5/bin/nose2
+  - make test
