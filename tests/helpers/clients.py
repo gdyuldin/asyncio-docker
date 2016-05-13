@@ -1,4 +1,4 @@
-from asyncio_docker.client import factory
+from asyncio_docker.client import client_factory
 
 from .env import (
     DOCKER_HOST,
@@ -10,10 +10,10 @@ from .env import (
 )
 
 def tcp_client():
-    return factory(DOCKER_HOST)(DOCKER_HOST)
+    return client_factory(DOCKER_HOST)(DOCKER_HOST)
 
 def tcp_tls_client():
-    return factory(DOCKER_TLS_HOST)(
+    return client_factory(DOCKER_TLS_HOST)(
         DOCKER_TLS_HOST,
         tls=True,
         tls_verify=True,
@@ -23,4 +23,4 @@ def tcp_tls_client():
     )
 
 def unix_client():
-    return factory(DOCKER_SOCKET)(DOCKER_SOCKET)
+    return client_factory(DOCKER_SOCKET)(DOCKER_SOCKET)

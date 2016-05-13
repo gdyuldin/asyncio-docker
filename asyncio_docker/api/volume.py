@@ -1,15 +1,12 @@
-from aiohttp.hdrs import CONTENT_TYPE
 from asyncio_docker.registry import RegistryUnbound
-from asyncio_docker.api.errors import status_error
-from asyncio_docker.api.constants.schemas import CREATE_VOLUME
-from asyncio_docker.api.constants.http import (
-    APPLICATION_JSON
-)
+from asyncio_docker.collections import DataMapping
 from asyncio_docker.utils.url import build_url
-from asyncio_docker.utils.convention import snake_case
 
+from .errors import status_error
+from .constants.schemas import VOLUME_CONFIG
+from .constants.http import APPLICATION_JSON
 
-
+from aiohttp.hdrs import CONTENT_TYPE
 from attrdict import AttrDict
 import json
 
@@ -25,11 +22,7 @@ class Volume(RegistryUnbound):
 
     @property
     def data(self):
-        return AttrDict(snake_case(self._raw or {}))
-
-    @property
-    def raw(self):
-        return AttrDict(self._raw or {})
+        return self._data
 
     async def inspect(self):
         req = self.client.get(build_url(PREFIX, self.name))
@@ -46,7 +39,7 @@ class Volume(RegistryUnbound):
 
     @classmethod
     async def create(cls, config):
-        validate(config, CREATE_VOLUME)
+        validate(config, VOLUME_CONFIG)
 
         req = cls.client.post(
             build_url(PREFIX, 'create'),
@@ -61,7 +54,7 @@ class Volume(RegistryUnbound):
                 raise await status_error(res)
 
             raw = await(res.json())
-            return cls(snake_case(raw)['name'], raw=raw)
+            return cls(raw['Name'], raw=raw)
 
     @classmethod
     async def list(cls, dangling=False, filters=None):
@@ -78,7 +71,7 @@ class Volume(RegistryUnbound):
             if res.status != 200:
                 raise await status_error(res)
             return [
-                cls(snake_case(raw)['name'], raw=raw)
+                cls(raw['Name'], raw=raw)
                 for raw in ((await res.json()).get('Volumes', None) or [])
             ]
 

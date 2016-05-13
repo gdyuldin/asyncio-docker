@@ -6,7 +6,7 @@ from helpers import aio
 from helpers.daemons import tcp_daemon, tcp_tls_daemon, unix_daemon
 from helpers.clients import tcp_client, tcp_tls_client, unix_client
 
-from asyncio_docker.client import ClientError
+from asyncio_docker.client.errors import ClientError
 
 
 class ClientTestCase(unittest.TestCase):

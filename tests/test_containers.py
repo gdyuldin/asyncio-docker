@@ -8,7 +8,7 @@ from helpers.daemons import tcp_daemon
 from helpers.clients import tcp_client
 
 
-from asyncio_docker.api import API
+from asyncio_docker.api import RemoteAPI
 
 
 with such.A('Daemon') as it:
@@ -18,7 +18,7 @@ with such.A('Daemon') as it:
     async def setup(scenario):
         it.daemon = tcp_daemon()
         it.client = tcp_client()
-        it.api = API(it.client)
+        it.api = RemoteAPI(it.client)
         it.client.open()
         await it.daemon.open()
 

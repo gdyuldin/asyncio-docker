@@ -1,7 +1,8 @@
 from asyncio_docker.registry import RegistryUnbound
-from asyncio_docker.api.errors import status_error
-from asyncio_docker.api.constants.types import CONTAINER, IMAGE, NETWORK, VOLUME
-from asyncio_docker.utils.convention import snake_case
+from asyncio_docker.collections import DataMapping
+
+from .errors import status_error
+from .constants.types import CONTAINER, IMAGE, NETWORK, VOLUME
 
 from attrdict import AttrDict
 import aiohttp
@@ -18,6 +19,10 @@ class Event(RegistryUnbound):
         self._raw = raw
 
     @property
+    def data(self):
+        return DataMapping(self._raw or {})
+
+    @property
     def action(self):
         return self._action
 
@@ -27,7 +32,7 @@ class Event(RegistryUnbound):
 
     @property
     def actor(self):
-        return AttrDict(self._actor)
+        return DataMapping(self._actor)
 
     @property
     def time(self):
@@ -60,10 +65,6 @@ class Event(RegistryUnbound):
             return self.registry.Volume(self.actor.id)
         else:
             return None
-
-    @property
-    def raw(self):
-        return AttrDict(self._raw or {})
 
     @classmethod
     def get(cls, since=None, until=None):
@@ -117,12 +118,11 @@ class EventStream(RegistryUnbound):
         if chunk is not None:
             try:
                 raw = json.loads(chunk.decode(encoding='UTF-8'))
-                data = snake_case(raw)
                 return self.registry.Event(
-                    action=data['action'],
-                    type=data['type'],
-                    actor=data['actor'],
-                    time=data['time_nano'],
+                    action=raw['Action'],
+                    type=raw['Type'],
+                    actor=raw['Actor'],
+                    time=raw['timeNano'],
                     raw=raw,
                 )
             except json.JSONDecodeError as ex:

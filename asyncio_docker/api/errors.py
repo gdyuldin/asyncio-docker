@@ -13,7 +13,19 @@ class Status304Error(StatusError):
     pass
 
 
+class Status400Error(StatusError):
+    pass
+
+
+class Status403Error(StatusError):
+    pass
+
+
 class Status404Error(StatusError):
+    pass
+
+
+class Status409Error(StatusError):
     pass
 
 
@@ -27,7 +39,10 @@ class StatusUnknownError(StatusError):
 
 _status_errors = {
     304: Status304Error,
+    400: Status400Error,
+    403: Status403Error,
     404: Status404Error,
+    409: Status409Error,
     500: Status500Error
 }
 

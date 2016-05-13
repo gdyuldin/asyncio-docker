@@ -1,5 +1,5 @@
-import json
 from urllib.parse import quote
+import json
 
 
 def build_url(*parts, **params):

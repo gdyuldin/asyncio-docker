@@ -1,9 +1,10 @@
 from asyncio_docker.registry import RegistryUnbound
-from asyncio_docker.api.errors import status_error
-from asyncio_docker.api.constants.schemas import CREATE_CONTAINER
-from asyncio_docker.api.constants.http import APPLICATION_JSON
-from asyncio_docker.utils.convention import snake_case
+from asyncio_docker.collections import DataMapping
 from asyncio_docker.utils.url import build_url
+
+from .errors import status_error
+from .constants.schemas import CONTAINER_CONFIG
+from .constants.http import APPLICATION_JSON
 
 from aiohttp.hdrs import CONTENT_TYPE
 from attrdict import AttrDict
@@ -22,11 +23,7 @@ class Container(RegistryUnbound):
 
     @property
     def data(self):
-        return AttrDict(snake_case(self._raw or {}))
-
-    @property
-    def raw(self):
-        return AttrDict(self._raw or {})
+        return DataMapping(self._raw or {})
 
     @property
     def id(self):
@@ -119,11 +116,11 @@ class Container(RegistryUnbound):
                 raise await status_error(res)
 
             raw = await(res.json())
-            return self.registry.ExecInstance(snake_case(raw)['id'], raw=raw)
+            return self.registry.ExecInstance(raw['Id'], raw=raw)
 
     @classmethod
     async def create(cls, config, name=None):
-        validate(config, CREATE_CONTAINER)
+        validate(config, CONTAINER_CONFIG)
 
         q = {}
         if name is not None:
@@ -142,7 +139,7 @@ class Container(RegistryUnbound):
                 raise await status_error(res)
 
             raw = await(res.json())
-            return cls(snake_case(raw)['id'], raw=raw)
+            return cls(raw['Id'], raw=raw)
 
     @classmethod
     async def list(cls, all=None, labels=None, filters=None):
@@ -164,7 +161,7 @@ class Container(RegistryUnbound):
             if res.status != 200:
                 raise await status_error(res)
             return [
-                cls(snake_case(raw)['id'], raw=raw) for raw in await res.json()
+                cls(raw['Id'], raw=raw) for raw in await res.json()
             ]
 
     def __hash__(self):

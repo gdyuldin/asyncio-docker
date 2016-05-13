@@ -1,4 +1,5 @@
 from collections import OrderedDict
+
 from .statuses import (
     CREATED,
     RUNNING,
@@ -70,7 +71,7 @@ IPAM_CONFIG = {
 }
 
 
-CREATE_CONTAINER = {
+CONTAINER_CONFIG = {
     'type': 'object',
     'properties': OrderedDict([
         ('Hostname', {
@@ -189,7 +190,7 @@ CREATE_CONTAINER = {
 }
 
 
-CREATE_NETWORK = {
+NETWORK_CONFIG = {
     'type': 'object',
     'properties': {
         'Name': {
@@ -215,7 +216,7 @@ CREATE_NETWORK = {
 }
 
 
-CREATE_VOLUME = {
+VOLUME_CONFIG = {
     'type': 'object',
     'properties': {
         'Name': {

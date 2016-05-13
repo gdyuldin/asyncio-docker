@@ -1,10 +1,9 @@
 from asyncio_docker.registry import RegistryUnbound
-from asyncio_docker.api.errors import status_error
-from asyncio_docker.api.constants.http import (
-    APPLICATION_JSON
-)
-from asyncio_docker.utils.convention import snake_case
+from asyncio_docker.collections import DataMapping
 from asyncio_docker.utils.url import build_url
+
+from .errors import status_error
+from .constants.http import APPLICATION_JSON, APPLICATION_VND_DOCKER_RAW_STREAM
 
 from aiohttp import EofStream
 from aiohttp.hdrs import CONTENT_TYPE
@@ -23,6 +22,10 @@ class ExecInstance(RegistryUnbound):
         self._id = id
         self._raw = raw
 
+    @property
+    def data(self):
+        return DataMapping(self._raw or {})
+
     def exec_start(self, detach=False, tty=False):
 
         data = {
@@ -39,14 +42,6 @@ class ExecInstance(RegistryUnbound):
         )
 
         return self.registry.ExecStream(req, tty=tty)
-
-    @property
-    def data(self):
-        return AttrDict(snake_case(self._raw or {}))
-
-    @property
-    def raw(self):
-        return AttrDict(self._raw or {})
 
     @property
     def id(self):
@@ -119,12 +114,12 @@ class ExecStream(RegistryUnbound):
                 2: 'stderr'
             }.get(typ, None)
 
-            if content_type == 'application/vnd.docker.raw-stream':
+            if content_type == APPLICATION_VND_DOCKER_RAW_STREAM:
                 return {
                     'type': typ,
                     'msg': str(data, 'utf-8')
                 }
-            elif content_type == 'application/json':
+            elif content_type == APPLICATION_JSON:
                 return {
                     'type': typ,
                     'payload': json.loads(str(data, 'utf-8'))

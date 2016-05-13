@@ -1,7 +1,15 @@
-from asyncio_docker.registry import Registry as API
-from .container import *
-from .image import *
-from .network import *
-from .volume import *
-from .event import *
-from .exec import *
+# Register
+from . import (
+    container,
+    image,
+    network,
+    volume,
+    event,
+    exec
+)
+
+from asyncio_docker.registry import Registry as RemoteAPI
+
+__all__ = [
+    'RemoteAPI'
+]

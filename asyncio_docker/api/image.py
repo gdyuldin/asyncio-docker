@@ -1,7 +1,8 @@
 from asyncio_docker.registry import RegistryUnbound
-from asyncio_docker.api.errors import APIError, status_error
-from asyncio_docker.utils.convention import snake_case
+from asyncio_docker.collections import DataMapping
 from asyncio_docker.utils.url import build_url
+
+from .errors import APIError, status_error
 
 from attrdict import AttrDict
 from jsonschema import validate, ValidationError
@@ -19,11 +20,7 @@ class Image(RegistryUnbound):
 
     @property
     def data(self):
-        return AttrDict(snake_case(self._raw or {}))
-
-    @property
-    def raw(self):
-        return AttrDict(self._raw or {})
+        return self._data
 
     async def inspect(self):
         req = self.client.get(build_url(PREFIX, self.name, 'json'))
@@ -72,8 +69,8 @@ class Image(RegistryUnbound):
             # Wait till full response is available
             data = (await res.text()).splitlines()
             if data:
-                # Check last status, make it has no error
-                last_status = snake_case(json.loads(data[-1]))
+                # Check last status, make sure it has no error
+                last_status = json.loads(data[-1])
                 if 'error' in last_status:
                     raise APIError(last_status['error'])
 
@@ -108,7 +105,7 @@ class Image(RegistryUnbound):
             if res.status != 200:
                 raise await status_error(res)
             return [
-                cls(snake_case(raw)['id'], raw=raw) for raw in await res.json()
+                cls(raw['Id'], raw=raw) for raw in await res.json()
             ]
 
     @property
