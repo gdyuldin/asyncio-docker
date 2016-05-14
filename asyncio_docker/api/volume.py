@@ -7,7 +7,6 @@ from .constants.schemas import VOLUME_CONFIG
 from .constants.http import APPLICATION_JSON
 
 from aiohttp.hdrs import CONTENT_TYPE
-from attrdict import AttrDict
 import json
 
 
@@ -29,7 +28,7 @@ class Volume(RegistryUnbound):
         async with req as res:
             if res.status != 200:
                 raise await status_error(res)
-            return AttrDict(**await(res.json()))
+            return DataMapping(await res.json())
 
     async def remove(self):
         req = self.client.delete(build_url(PREFIX, self.name))

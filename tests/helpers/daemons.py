@@ -74,16 +74,20 @@ class DockerDaemon(object):
                 return
 
     async def close(self):
-        clean = await asyncio.create_subprocess_exec(
-            'docker-clean',
+        self._process.terminate()
+        await self._process.wait()
+
+    async def clean(self, all=True):
+        command = ['docker-clean']
+        if all:
+            command.extend(['--all'])
+        process = await asyncio.create_subprocess_exec(
+            *command,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
         )
 
-        await clean.wait()
-
-        self._process.terminate()
-        await self._process.wait()
+        await process.wait()
 
     async def __aenter__(self):
         return await self.open()

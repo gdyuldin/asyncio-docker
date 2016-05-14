@@ -7,7 +7,6 @@ from .constants.http import APPLICATION_JSON, APPLICATION_VND_DOCKER_RAW_STREAM
 
 from aiohttp import EofStream
 from aiohttp.hdrs import CONTENT_TYPE
-from attrdict import AttrDict
 
 import struct
 import json

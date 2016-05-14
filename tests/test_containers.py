@@ -1,7 +1,6 @@
 import unittest
 
 from nose2.tools import such
-from nose2.tools.params import params
 
 from helpers import aio
 from helpers.daemons import tcp_daemon
@@ -21,16 +20,31 @@ with such.A('Daemon') as it:
         it.api = RemoteAPI(it.client)
         it.client.open()
         await it.daemon.open()
+        await it.daemon.clean()
 
     @it.should('list no containers')
     @aio.run_until_complete()
     async def list_no_container(case):
         case.assertEqual(len(await it.api.Container.list()), 0)
 
+    @it.should('create a container')
+    @aio.run_until_complete()
+    async def list_no_container(case):
+        await it.api.Image.create('alpine:latest')
+        await it.api.Container.create({
+            'Image': 'alpine:latest',
+            'Cmd': [
+                'echo'
+                'foobar'
+            ]
+        })
+        case.assertEqual(len(await it.api.Container.list(all=True)), 1)
+
     @it.has_teardown
     @aio.run_until_complete()
     async def teardown(scenario):
         it.client.close()
+        await it.daemon.clean()
         await it.daemon.close()
 
 

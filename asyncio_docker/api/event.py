@@ -4,7 +4,6 @@ from asyncio_docker.collections import DataMapping
 from .errors import status_error
 from .constants.types import CONTAINER, IMAGE, NETWORK, VOLUME
 
-from attrdict import AttrDict
 import aiohttp
 import json
 

@@ -7,7 +7,6 @@ from .constants.schemas import CONTAINER_CONFIG
 from .constants.http import APPLICATION_JSON
 
 from aiohttp.hdrs import CONTENT_TYPE
-from attrdict import AttrDict
 from jsonschema import validate, ValidationError
 import json
 
@@ -34,14 +33,14 @@ class Container(RegistryUnbound):
         async with req as res:
             if res.status != 200:
                 raise await status_error(res)
-            return AttrDict(**(await res.json()))
+            return DataMapping(await res.json())
 
     async def inspect(self):
         req = self.client.get(build_url(PREFIX, self.id, 'json'))
         async with req as res:
             if res.status != 200:
                 raise await status_error(res)
-            return AttrDict(**(await res.json()))
+            return DataMapping(await res.json())
 
     async def stop(self, timeout=None):
         req = self.client.post(build_url(PREFIX, self.id, 'stop'))

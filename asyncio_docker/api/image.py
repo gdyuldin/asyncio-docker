@@ -4,7 +4,6 @@ from asyncio_docker.utils.url import build_url
 
 from .errors import APIError, status_error
 
-from attrdict import AttrDict
 from jsonschema import validate, ValidationError
 import json
 
@@ -27,7 +26,7 @@ class Image(RegistryUnbound):
         async with req as res:
             if res.status != 200:
                 raise await status_error(res)
-            return AttrDict(**await(res.json()))
+            return DataMapping(await res.json())
 
     async def remove(self, no_prune=False, force=False):
 

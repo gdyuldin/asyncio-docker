@@ -1,6 +1,3 @@
-import abc
-
-
 class Registry(object):
 
     _types = []
@@ -19,9 +16,8 @@ class RegistryBound(object):
     pass
 
 
-class RegistryUnboundMeta(abc.ABCMeta):
+class RegistryUnboundMeta(type):
 
-    # Inherit from ABCMeta in order to avoid conflicts with AttrDict
     def __new__(mcls, name, bases, namespace):
         cls = super(RegistryUnboundMeta, mcls).__new__(mcls, name, bases, namespace)
 

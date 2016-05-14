@@ -22,8 +22,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'aiohttp',
-        'jsonschema',
-        'attrdict'
+        'jsonschema'
     ],
     zip_safe=False,
     classifiers=[

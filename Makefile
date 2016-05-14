@@ -34,4 +34,5 @@ dev-install: generate-certs
 	.venv/bin/pip install -e .
 
 test:
+	- sudo killall docker
 	sudo .venv/bin/nose2
