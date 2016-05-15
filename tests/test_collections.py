@@ -12,66 +12,12 @@ class DataMappingTestCase(unittest.TestCase):
 
     def setUp(self):
         self.data = DataMapping(json.loads(JSON))
-    
-    def test_init(self):
-        DataMapping({})
-        DataMapping([('a', 1), ('b', 2)])
-        DataMapping([('a', 1), ('b', 2)], c=3)
-
-    @params('HostConfig', 'host_config', 'hostConfig')
-    def test_in(self, key):
-        self.assertIn(key, self.data)
-
-    @params('hostconfig', 'hoStConfig', 'HOSTCONFIG')
-    def test_not_in(self, key):
-        self.assertNotIn(key, self.data)
-
-    def test_keys(self):
-        self.assertIn('HostConfig', self.data.keys())
-        self.assertNotIn('host_config', self.data.keys())
-
-    def test_values(self):
-        self.assertIn('devicemapper', self.data.values())
-
-    def test_items(self):
-        self.assertIn(('Driver', 'devicemapper'), self.data.items())
-
-    def test_getitem(self):
-        self.assertEqual(self.data['Driver'], 'devicemapper')
-        self.assertEqual(self.data['driver'], 'devicemapper')
-        with self.assertRaises(KeyError):
-            self.data['NotFound']
 
     def test_getattr(self):
         self.assertEqual(self.data.Driver, 'devicemapper')
         self.assertEqual(self.data.driver, 'devicemapper')
         with self.assertRaises(AttributeError):
             self.data.NotFound
-
-    def test_get(self):
-        self.assertEqual(self.data.get('Driver'), 'devicemapper')
-        self.assertEqual(self.data.get('driver'), 'devicemapper')
-        self.assertEqual(self.data.get('NotFound'), None)
-        self.assertEqual(self.data.get('NotFound', 1), 1)
-
-    def test_nested(self):
-        self.assertIsInstance(self.data['HostConfig'], DataMapping)
-        self.assertIsInstance(self.data['HostConfig']['RestartPolicy'], DataMapping)
-        self.assertIsInstance(self.data['Mounts'][0], DataMapping)
-
-    def test_equal(self):
-        a = DataMapping([('a', 1), ('b', 2)], c=3)
-        b = DataMapping([('a', 1), ('c', 3)], b=2)
-        c = {'a': 1, 'b': 2, 'c': 3}
-        self.assertEqual(a, b)
-        self.assertEqual(a, c)
-
-    def test_raw(self):
-        self.assertEqual(self.data.raw, json.loads(JSON))
-
-    def test_raw_loss(self):
-        o = {'UpperCase': 1, 'upper_case': 1}
-        self.assertNotEqual(DataMapping(o), o)
 
 
 JSON = """

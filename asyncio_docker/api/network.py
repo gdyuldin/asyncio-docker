@@ -21,7 +21,7 @@ class Network(RegistryUnbound):
 
     @property
     def data(self):
-        return self._data
+        return DataMapping(self._raw or {})
 
     async def inspect(self):
         req = self.client.get(build_url(PREFIX, self.id))
