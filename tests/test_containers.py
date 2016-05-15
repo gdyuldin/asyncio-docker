@@ -34,8 +34,7 @@ with such.A('Daemon') as it:
         await it.api.Container.create({
             'Image': 'alpine:latest',
             'Cmd': [
-                'echo'
-                'foobar'
+                'bash'
             ]
         })
         case.assertEqual(len(await it.api.Container.list(all=True)), 1)
