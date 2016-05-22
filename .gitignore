@@ -5,6 +5,8 @@ __pycache__
 .DS_Store
 .venv
 .coverage
+.vagrant
+.bundle
 /site
 /dist
 /tests/ssl

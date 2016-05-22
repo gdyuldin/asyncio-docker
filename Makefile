@@ -1,4 +1,5 @@
-FQDN=localhost
+FQDN ?= localhost
+VENV ?= ~/venv
 
 release:
 	python setup.py sdist
@@ -25,14 +26,14 @@ generate-certs:
 		chmod -v 0444 ca.crt server.crt client.crt
 
 
-dev-install: generate-certs
+install: generate-certs
 	curl -s https://raw.githubusercontent.com/ZZROTDesign/docker-clean/v2.0.3/docker-clean | \
 	sudo tee /usr/local/bin/docker-clean > /dev/null && \
 	sudo chmod +x /usr/local/bin/docker-clean
-	virtualenv .venv -p python3.5
-	.venv/bin/pip install -r dev_requirements.txt
-	.venv/bin/pip install -e .
+	virtualenv $(VENV) -p python3.5
+	$(VENV)/bin/pip install -r dev_requirements.txt
+	$(VENV)/bin/pip install -e .
 
 test:
 	- sudo killall docker
-	sudo .venv/bin/nose2
+	sudo $(VENV)/bin/green

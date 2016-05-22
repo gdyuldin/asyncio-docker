@@ -1,6 +1,5 @@
 import unittest
 
-from nose2.tools.params import params
 import json
 
 from asyncio_docker.collections import DataMapping

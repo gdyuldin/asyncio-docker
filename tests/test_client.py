@@ -1,7 +1,5 @@
 import unittest
 
-from nose2.tools.params import params
-
 from helpers import aio
 from helpers.daemons import tcp_daemon, tcp_tls_daemon, unix_daemon
 from helpers.clients import tcp_client, tcp_tls_client, unix_client
