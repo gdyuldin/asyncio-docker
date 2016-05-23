@@ -56,12 +56,11 @@ class DockerDaemon(object):
         self._process = await asyncio.create_subprocess_exec(
             *command,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
         loop = asyncio.get_event_loop()
 
-        # Wait for startup, at max 30 seconds
-        await asyncio.wait_for(self._wait_startup(), 30)
+        await asyncio.sleep(5)
         return self
 
     async def _wait_startup(self):
@@ -89,7 +88,7 @@ class DockerDaemon(object):
         process = await asyncio.create_subprocess_exec(
             *command,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
 
         stdout, stderr = await process.communicate()
@@ -103,7 +102,7 @@ class DockerDaemon(object):
         process = await asyncio.create_subprocess_exec(
             *command,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
 
         stdout, stderr = await process.communicate()
