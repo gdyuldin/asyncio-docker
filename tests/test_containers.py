@@ -19,7 +19,7 @@ async def run_containers(case, names):
 
 class ContainerTestCase(unittest.TestCase):
 
-    @aio.run_until_complete(30)
+    @aio.run_until_complete()
     async def setUp(self):
         self.daemon = await tcp_daemon().open()
         self.client = tcp_client().open()
@@ -30,7 +30,7 @@ class ContainerTestCase(unittest.TestCase):
         (['foobar-1', 'foobar-2'],)
     ])
     @fixture.from_callable(run_containers)
-    @aio.run_until_complete(30)
+    @aio.run_until_complete()
     async def test_list(self, names):
         containers = await self.api.Container.list()
         self.assertEqual(len(containers), len(names))
@@ -38,7 +38,7 @@ class ContainerTestCase(unittest.TestCase):
             self.assertIn(container.data.names[0][1:], names)
 
 
-    @aio.run_until_complete(30)
+    @aio.run_until_complete()
     async def tearDown(self):
         self.client.close()
         await self.daemon.clean()
