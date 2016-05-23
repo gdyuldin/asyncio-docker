@@ -1,5 +1,5 @@
 FQDN ?= localhost
-VENV ?= .venv
+VENV ?= ~/venv
 
 release:
 	python setup.py sdist

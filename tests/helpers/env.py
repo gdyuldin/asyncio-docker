@@ -1,7 +1,7 @@
 import os.path
 from os import environ
 
-DOCKER_HOST = environ.get('DOCKER_HOST', 'tcp://127.0.0.1:2375')
+DOCKER_HOST = environ.get('DOCKER_HOST', 'tcp://127.0.0.1:2377')
 DOCKER_TLS_HOST = environ.get('DOCKER_TLS_HOST', 'tcp://127.0.0.1:2376')
 DOCKER_SOCKET = environ.get('DOCKER_SOCKET', 'unix:///var/run/docker.sock')
 SSL_DIR = 'tests/ssl'

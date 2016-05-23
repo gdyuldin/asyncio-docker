@@ -60,17 +60,45 @@ class DockerDaemon(object):
         )
         loop = asyncio.get_event_loop()
 
-        await asyncio.sleep(5)
+        await asyncio.wait_for(self._wait_startup(), 30)
         return self
 
     async def _wait_startup(self):
         while True:
-            # Read all lines timeout after a second
-            try:
-                line = await asyncio.wait_for(self._process.stdout.readline(), 3)
-            except asyncio.TimeoutError:
-                # Wait is over
-                return
+            await asyncio.sleep(3)
+
+            command = [
+                'docker',
+                '-H',
+                self._host,
+            ]
+
+            if self._tls_verify:
+                command.extend(['--tlsverify'])
+
+            if self._tls_ca_cert:
+                command.extend(['--tlscacert', self._tls_ca_cert])
+
+            if self._tls_cert:
+                command.extend(['--tlscert', self._tls_cert])
+
+            if self._tls_key:
+                command.extend(['--tlskey', self._tls_key])
+
+            command.extend([
+                'info'
+            ])
+
+            process = await asyncio.create_subprocess_exec(
+                *command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+            )
+
+            stdout, stderr = await process.communicate()
+            if process.returncode == 0:
+                break
+
 
     async def close(self):
         if self._process.returncode is None:
