@@ -28,15 +28,15 @@ class DockerDaemon(object):
 
     async def open(self):
         command = [
-            "docker",
-            "daemon",
-            "-H",
+            'docker',
+            'daemon',
+            '-H',
             self._host,
         ]
 
         if self._host != DOCKER_SOCKET:
             command.extend([
-                "-H",
+                '-H',
                 DOCKER_SOCKET
             ])
 
@@ -56,7 +56,7 @@ class DockerDaemon(object):
         self._process = await asyncio.create_subprocess_exec(
             *command,
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stderr=subprocess.PIPE,
         )
         loop = asyncio.get_event_loop()
 
@@ -74,20 +74,40 @@ class DockerDaemon(object):
                 return
 
     async def close(self):
-        self._process.terminate()
-        await self._process.wait()
+        if self._process.returncode is None:
+            self._process.terminate()
+            await self._process.communicate()
+
+        del self._process
+
+    async def call(self, *args):
+        command = [
+            'docker'
+        ]
+        command.extend(args)
+
+        process = await asyncio.create_subprocess_exec(
+            *command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        stdout, stderr = await process.communicate()
+        return process.returncode, stdout, stderr
 
     async def clean(self, all=True):
         command = ['docker-clean']
         if all:
             command.extend(['--all'])
+
         process = await asyncio.create_subprocess_exec(
             *command,
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stderr=subprocess.PIPE,
         )
 
-        await process.wait()
+        stdout, stderr = await process.communicate()
+        return process.returncode, stdout, stderr
 
     async def __aenter__(self):
         return await self.open()

@@ -45,7 +45,7 @@ class BaseClient(object, metaclass=abc.ABCMeta):
     def _get_session(self, response_class=aiohttp.ClientResponse):
         if self.is_closed():
             raise ClientClosedError("Cannot get a session, client is closed")
-            
+
         if response_class not in self._sessions:
             self._sessions[response_class] = aiohttp.ClientSession(
                 connector=self._connector,
@@ -80,6 +80,7 @@ class BaseClient(object, metaclass=abc.ABCMeta):
 
         self._connector = self.new_connector(loop=self._loop)
         self._sessions = {}
+        return self
 
     def is_closed(self):
         return not hasattr(self, '_connector')
@@ -99,8 +100,7 @@ class BaseClient(object, metaclass=abc.ABCMeta):
         del self._sessions
 
     def __enter__(self):
-        self.open()
-        return self
+        return self.open()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()

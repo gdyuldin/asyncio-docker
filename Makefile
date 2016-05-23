@@ -21,9 +21,7 @@ generate-certs:
 		echo extendedKeyUsage = clientAuth > extfile.cnf  && \
 		openssl x509 -req -days 365 -sha256 -in client.csr -CA ca.crt -CAkey ca.key \
 	  	-CAcreateserial -out client.crt -extfile extfile.cnf  && \
-		rm -v client.csr server.csr extfile.cnf  && \
-		chmod -v 0400 ca.key server.key client.key  && \
-		chmod -v 0444 ca.crt server.crt client.crt
+		rm -v client.csr server.csr extfile.cnf
 
 
 install: generate-certs
