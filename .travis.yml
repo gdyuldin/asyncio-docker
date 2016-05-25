@@ -10,7 +10,7 @@ services:
   - docker
 
 before_install:
-  - sudo useradd $USER root
+  - sudo adduser ${USER} root
 
 install:
   - export VENV=.venv
