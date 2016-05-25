@@ -12,12 +12,16 @@ services:
 install:
   - export VENV=.venv
   - make install
+  - pip install codecov
 
 script:
   - export VENV=.venv
   - export TEST_DOCKER_HOST=tcp://127.0.0.1:23750
   - export TEST_DOCKER_TLS_HOST=tcp://127.0.0.1:23760
   - sudo -E make test
+
+after_success:
+  - codecov
 
 deploy:
   provider: pypi
