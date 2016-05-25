@@ -90,7 +90,6 @@ class DockerDaemon(object):
             raise unittest.SkipTest(stderr)
 
         self._container = stdout.decode().rstrip()
-        print(self._container)
 
         try:
             await asyncio.wait_for(self._wait_startup(), 10)
@@ -104,20 +103,12 @@ class DockerDaemon(object):
         while True:
             await asyncio.sleep(1)
             returncode, stdout, stderr = await self.call('info')
-            print(stdout, stderr)
             if returncode == 0:
                 break
 
-    async def close(self):
-        self._container
-        command = [
-            'docker',
-            'rm',
-            '-f',
-            '-v',
-            self._container
-        ]
-
+    async def _call_host(self, *args):
+        command = ['docker']
+        command.extend(args)
         process = await asyncio.create_subprocess_exec(
             *command,
             stdout=subprocess.PIPE,
@@ -125,7 +116,26 @@ class DockerDaemon(object):
         )
 
         stdout, stderr = await process.communicate()
-        if process.returncode != 0:
+        return process.returncode, stdout, stderr
+
+    async def close(self):
+
+        returncode, stdout, stderr = process = await self._call_host(
+            'logs',
+            self._container
+        )
+
+        print(stdout)
+        print(stderr)
+
+        returncode, stdout, stderr = process = await self._call_host(
+            'rm',
+            '-f',
+            '-v',
+            self._container
+        )
+
+        if returncode != 0:
             raise Exception(stderr)
 
         del self._container
