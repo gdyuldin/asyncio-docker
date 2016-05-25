@@ -42,7 +42,6 @@ class DockerDaemon(object):
         return self._host
 
     async def open(self):
-        print(self._host)
         command = [
             'docker',
             'run',
@@ -128,9 +127,6 @@ class DockerDaemon(object):
             'logs',
             self._container
         )
-
-        print(stdout)
-        print(stderr)
 
         returncode, stdout, stderr = process = await self._call_host(
             'rm',

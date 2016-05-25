@@ -1,3 +1,7 @@
 green
 nose-parameterized
 coverage
+twine
+mkdocs
+mkdocs-material
+pygments

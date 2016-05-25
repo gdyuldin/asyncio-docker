@@ -1,16 +1,19 @@
+from urllib.parse import urlsplit, urlunsplit, urljoin
 import asyncio
 import abc
 import aiohttp
 
+from asyncio_docker import API_VERSION
 from .errors import ClientError, ClientClosedError
 
 
 class BaseClient(object, metaclass=abc.ABCMeta):
 
-    def __init__(self, host, *, headers=None, loop=None):
+    def __init__(self, host, *, headers=None, version=API_VERSION, loop=None):
         self._host = host
-        self._loop = loop or asyncio.get_event_loop()
         self._headers = headers or {}
+        self._version = version
+        self._loop = loop or asyncio.get_event_loop()
 
     @property
     def host(self):
@@ -42,6 +45,15 @@ class BaseClient(object, metaclass=abc.ABCMeta):
             **kwargs
         )
 
+    def _resolve_url(self, url):
+        url = self.resolve_url(url)
+        if self._version is not None:
+            o = urlsplit(url)
+            n = o[:2] + (urljoin('v%s.%s' % self._version, o[2]),) + o[3:]
+            url = urlunsplit(n)
+        return url
+
+
     def _get_session(self, response_class=aiohttp.ClientResponse):
         if self.is_closed():
             raise ClientClosedError("Cannot get a session, client is closed")
@@ -58,7 +70,7 @@ class BaseClient(object, metaclass=abc.ABCMeta):
     def request(self, method, url, response_class=aiohttp.ClientResponse, **kwargs):
         return self._get_session(response_class=response_class).request(
             method,
-            self.resolve_url(url),
+            self._resolve_url(url),
             **self.resolve_kwargs(**kwargs)
         )
 

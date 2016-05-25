@@ -2,9 +2,9 @@ FQDN ?= localhost
 VENV ?= /home/vagrant/venv
 
 release:
-	python setup.py sdist
-	twine register dist/*
-	twine upload dist/*
+	$(VENV)/bin/python setup.py sdist
+	$(VENV)/bin/twine register dist/*
+	$(VENV)/bin/twine upload dist/*
 
 
 generate-certs:
@@ -34,6 +34,14 @@ install: generate-certs
 	$(VENV)/bin/pip install -e .
 
 
+version:
+	@$(VENV)/bin/python -c "from asyncio_docker import __version__; print(__version__);"
+
+
 test:
 	docker version
-	$(VENV)/bin/green
+	$(VENV)/bin/green -r
+
+
+serve-docs:
+	$(VENV)/bin/mkdocs serve
