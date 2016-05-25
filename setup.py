@@ -9,6 +9,7 @@ setup(
     description=('Asyncio Docker Client'),
     license='Apache Software License',
     packages=['asyncio_docker'],
+    zip_safe=False,
     install_requires=[
         'aiohttp>=0.21.6,<0.22.0',
         'jsonschema>=2.5.1,<2.6.0'
