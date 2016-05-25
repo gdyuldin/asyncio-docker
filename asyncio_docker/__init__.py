@@ -1,5 +1,3 @@
-import __main__
-
 from .utils.version import get_version
 
 API_VERSION = (1, 23)

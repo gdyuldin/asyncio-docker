@@ -1,30 +1,18 @@
-import os
-import sys
-
-from setuptools import setup, find_packages
-from distutils.sysconfig import get_python_lib
-
-_is_setup = True
-version = __import__('asyncio_docker').get_version()
-
+from setuptools import setup
 
 setup(
     name='asyncio-docker',
-    version=version,
-    url='http://www.adaptiv.nl/',
+    version=__import__('asyncio_docker').get_version(),
+    url='https://github.com/adaptivdesign/asyncio-docker',
     author='Raymond Reggers - Adaptiv Design',
     author_email='raymond@adaptiv.nl',
     description=('Asyncio Docker Client'),
     license='Apache Software License',
-    packages=find_packages(exclude=[
-
-    ]),
-    include_package_data=True,
+    packages=['asyncio_docker'],
     install_requires=[
-        'aiohttp',
-        'jsonschema'
+        'aiohttp>=0.21.6,<0.22.0',
+        'jsonschema>=2.5.1,<2.6.0'
     ],
-    zip_safe=False,
     classifiers=[
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
