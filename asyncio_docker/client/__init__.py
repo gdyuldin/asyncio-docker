@@ -12,6 +12,9 @@ _schemes = {
 
 
 def client_factory(host):
+    '''
+    docsting
+    '''
     o = urlsplit(host)
     if o.scheme in _schemes:
         return _schemes[o.scheme]

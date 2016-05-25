@@ -1,6 +1,6 @@
 # Project information
 site_name: 'asyncio-docker'
-site_description: 'Asnycio Docker Client'
+site_description: 'Asynchronous docker client for python'
 site_author: 'Raymond Reggers'
 site_url: 'https://adaptivdesign.github.io/asyncio-docker'
 
@@ -16,7 +16,7 @@ theme: 'material'
 
 # Extra
 extra:
-  version: '0.1.0'
+  version: '1.23'
   #logo: 'images/logo.png'
   palette:
     primary: 'teal'
@@ -36,6 +36,6 @@ markdown_extensions:
 
 # Pages
 pages:
-  - Pysanky: index.md
+  - About: index.md
   - Getting Started:
     - Installation: getting-started/installation.md

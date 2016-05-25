@@ -12,7 +12,6 @@ services:
 install:
   - export VENV=.venv
   - make install
-  - pip install codecov
 
 script:
   - export VENV=.venv
@@ -21,15 +20,26 @@ script:
   - sudo -E make test
 
 after_success:
-  - codecov
+  - bash <(curl -s https://codecov.io/bash)
 
 deploy:
-  provider: pypi
-  distributions: sdist
-  server: https://testpypi.python.org/pypi
-  user: adaptivdesign
-  password:
-    secure: "jctZfI5xz0TEi9vaxPKHO4Hbw0O3qBrFnIl/w8rpbZrjBnk5rwh/kype0e4tDj4Pak4qv+xQMYSKteM3zjAdxVrJsXKgkser/wAVm+I1HT9OLrAkUIzSPo7h893IUOW9pxU83eTW9jS2NR2cqPEGHmjnW+ExS5sJBg3SCX+broQpAUvn18pZpATqfmUo15hnNukfcOPf/vCgoJhNdqHejs31a4/tPxm5OpnqYf1/r/DmpxS0XqUtkFfL+9yBEz1+G45SDUQG2WIDf/cJPK4T3nZlX6JMvf+E+PTfWBA4XVLuSfAkuAH3BeEN/erxD0dMUVlhBQ+TDKeVq3tdTr/4PEBx82JliOFvzWqyOpTgJtGlfkHY8JNXN1XZpAhUAAcwei7PKOu0rO1jgnr8rA23ixvhxDJ9x989K3vHGWmrgoDzqTt2OY4llEdRQNQthRtcY03Tn9pmd8Ww2+6VC4X2Uko6ldxT3so1iER5h6gI/MGqQMXQrHhAmpaJGZqIkBKXndYgYTBAksnaIw6Qx23TCuRFJJvYMIr9IK5Gpd/WFMF1GUQDjLAakNmVSuRj8xYwGt8r1gqv97b33hZINVDWr/J43R/G/wWP+D8eQrNiiaDtJM3rSbn4psJid1Jmrb+/XSCRDWhZIIYLuIf1r0xHM/GLX+VIeyB8rrCqGEnSO4c="
-  on:
-    branch: master
-    tags: false
+  
+    # test pypi
+  - provider: pypi
+    distributions: sdist
+    server: https://testpypi.python.org/pypi
+    user: adaptivdesign
+    password:
+      secure: "jctZfI5xz0TEi9vaxPKHO4Hbw0O3qBrFnIl/w8rpbZrjBnk5rwh/kype0e4tDj4Pak4qv+xQMYSKteM3zjAdxVrJsXKgkser/wAVm+I1HT9OLrAkUIzSPo7h893IUOW9pxU83eTW9jS2NR2cqPEGHmjnW+ExS5sJBg3SCX+broQpAUvn18pZpATqfmUo15hnNukfcOPf/vCgoJhNdqHejs31a4/tPxm5OpnqYf1/r/DmpxS0XqUtkFfL+9yBEz1+G45SDUQG2WIDf/cJPK4T3nZlX6JMvf+E+PTfWBA4XVLuSfAkuAH3BeEN/erxD0dMUVlhBQ+TDKeVq3tdTr/4PEBx82JliOFvzWqyOpTgJtGlfkHY8JNXN1XZpAhUAAcwei7PKOu0rO1jgnr8rA23ixvhxDJ9x989K3vHGWmrgoDzqTt2OY4llEdRQNQthRtcY03Tn9pmd8Ww2+6VC4X2Uko6ldxT3so1iER5h6gI/MGqQMXQrHhAmpaJGZqIkBKXndYgYTBAksnaIw6Qx23TCuRFJJvYMIr9IK5Gpd/WFMF1GUQDjLAakNmVSuRj8xYwGt8r1gqv97b33hZINVDWr/J43R/G/wWP+D8eQrNiiaDtJM3rSbn4psJid1Jmrb+/XSCRDWhZIIYLuIf1r0xHM/GLX+VIeyB8rrCqGEnSO4c="
+    on:
+      branch: master
+      tags: false
+
+    # production pypi
+  - provider: pypi
+    distributions: sdist
+    user: adaptivdesign
+    password:
+      secure: "jctZfI5xz0TEi9vaxPKHO4Hbw0O3qBrFnIl/w8rpbZrjBnk5rwh/kype0e4tDj4Pak4qv+xQMYSKteM3zjAdxVrJsXKgkser/wAVm+I1HT9OLrAkUIzSPo7h893IUOW9pxU83eTW9jS2NR2cqPEGHmjnW+ExS5sJBg3SCX+broQpAUvn18pZpATqfmUo15hnNukfcOPf/vCgoJhNdqHejs31a4/tPxm5OpnqYf1/r/DmpxS0XqUtkFfL+9yBEz1+G45SDUQG2WIDf/cJPK4T3nZlX6JMvf+E+PTfWBA4XVLuSfAkuAH3BeEN/erxD0dMUVlhBQ+TDKeVq3tdTr/4PEBx82JliOFvzWqyOpTgJtGlfkHY8JNXN1XZpAhUAAcwei7PKOu0rO1jgnr8rA23ixvhxDJ9x989K3vHGWmrgoDzqTt2OY4llEdRQNQthRtcY03Tn9pmd8Ww2+6VC4X2Uko6ldxT3so1iER5h6gI/MGqQMXQrHhAmpaJGZqIkBKXndYgYTBAksnaIw6Qx23TCuRFJJvYMIr9IK5Gpd/WFMF1GUQDjLAakNmVSuRj8xYwGt8r1gqv97b33hZINVDWr/J43R/G/wWP+D8eQrNiiaDtJM3rSbn4psJid1Jmrb+/XSCRDWhZIIYLuIf1r0xHM/GLX+VIeyB8rrCqGEnSO4c="
+    on:
+      tags: true
