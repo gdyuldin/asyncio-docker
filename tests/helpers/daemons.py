@@ -63,6 +63,9 @@ class DockerDaemon(object):
 
         command.extend([
             self._image,
+            'docker',
+            'daemon',
+            '--storage-driver=vfs',
             '-H',
             self._host
         ])
