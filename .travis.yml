@@ -8,8 +8,9 @@ services:
   - docker
 
 install:
+  - export VENV=.venv
   - make install
 
 script:
-  - sudo service docker stop
+  - export VENV=.venv
   - make test

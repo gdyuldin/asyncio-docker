@@ -9,12 +9,11 @@ http://nl.alpinelinux.org/alpine/edge/community
 EOF
 
 sudo apk update
-sudo apk add docker
-sudo service docker start
+sudo apk add docker && \
+  sudo adduser ${USER} docker
+  sudo service docker start
 
-sudo apk add make
-
-sudo apk add python3 && \
+sudo apk add make python3 && \
     sudo python3 -m ensurepip && \
     sudo rm -r /usr/lib/python*/ensurepip && \
     sudo pip3 install --upgrade pip setuptools && \
@@ -41,10 +40,6 @@ Vagrant.configure(2) do |config|
 
   # Disable default share if not using shared folders so Vagrant will not block attempting to mount the volume.
   config.vm.synced_folder '.', '/vagrant', type: "nfs"
-
-  # Create a forwarded port mapping which allows access to a specific port
-  # within the machine from a port on the host machine.
-  config.vm.network "forwarded_port", guest: 8080, host: 8080
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.

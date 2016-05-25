@@ -8,7 +8,7 @@ from asyncio_docker.client.errors import ClientError
 
 
 class ClientTestCase(unittest.TestCase):
-
+    
     def test_open(self):
         client = tcp_client()
         with client:
@@ -29,20 +29,20 @@ class ClientTestCase(unittest.TestCase):
     @aio.run_until_complete(30)
     async def test_tcp_connection(self):
         async with tcp_daemon() as daemon:
-            with tcp_client() as client:
+            with tcp_client(daemon.host) as client:
                 async with client.get('/') as res:
                     self.assertEqual(res.status, 404)
 
     @aio.run_until_complete(30)
     async def test_tcp_tls_connection(self):
         async with tcp_tls_daemon() as daemon:
-            with tcp_tls_client() as client:
+            with tcp_tls_client(daemon.host) as client:
                 async with client.get('/') as res:
                     self.assertEqual(res.status, 404)
 
     @aio.run_until_complete(30)
     async def test_unix_connection(self):
         async with unix_daemon() as daemon:
-            with unix_client() as client:
+            with unix_client(daemon.host) as client:
                 async with client.get('/') as res:
                     self.assertEqual(res.status, 404)

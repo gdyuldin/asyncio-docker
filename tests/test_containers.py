@@ -41,5 +41,4 @@ class ContainerTestCase(unittest.TestCase):
     @aio.run_until_complete()
     async def tearDown(self):
         self.client.close()
-        await self.daemon.clean()
         await self.daemon.close()

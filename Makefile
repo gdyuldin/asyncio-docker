@@ -1,10 +1,11 @@
 FQDN ?= localhost
-VENV ?= ~/venv
+VENV ?= /home/vagrant/venv
 
 release:
 	python setup.py sdist
 	twine register dist/*
 	twine upload dist/*
+
 
 generate-certs:
 	mkdir -p "tests/ssl" && \
@@ -25,13 +26,13 @@ generate-certs:
 
 
 install: generate-certs
-	curl -s https://raw.githubusercontent.com/ZZROTDesign/docker-clean/v2.0.3/docker-clean | \
-	sudo tee /usr/local/bin/docker-clean > /dev/null && \
-	sudo chmod +x /usr/local/bin/docker-clean
-	virtualenv $(VENV) -p python3.5
+	if [ ! -d "$(VENV)" ]; then  \
+		virtualenv $(VENV) -p python3.5; \
+	fi
+
 	$(VENV)/bin/pip install -r dev_requirements.txt
 	$(VENV)/bin/pip install -e .
 
+
 test:
-	- sudo killall docker
 	sudo $(VENV)/bin/green
