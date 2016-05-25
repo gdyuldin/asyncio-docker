@@ -42,6 +42,7 @@ class DockerDaemon(object):
         return self._host
 
     async def open(self):
+        print(self._host)
         command = [
             'docker',
             'run',

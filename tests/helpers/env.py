@@ -1,8 +1,9 @@
 import os.path
 from os import environ
 
+print(environ)
 def environ_get(key, default=None):
-    return environ.get('TEST_%s', default)
+    return environ.get('TEST_%s' % key, default)
 
 DOCKER_DIND_IMAGE = environ_get('DOCKER_DIND_IMAGE', 'docker:1.11.1-dind')
 DOCKER_HOST = environ_get('DOCKER_HOST', 'tcp://127.0.0.1:2375')
