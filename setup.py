@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='asyncio-docker',
@@ -8,7 +8,7 @@ setup(
     author_email='raymond@adaptiv.nl',
     description=('Asyncio Docker Client'),
     license='Apache Software License',
-    packages=['asyncio_docker'],
+    packages=find_packages(),
     zip_safe=False,
     install_requires=[
         'aiohttp>=0.21.6,<0.22.0',
