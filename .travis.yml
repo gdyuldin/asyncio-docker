@@ -11,6 +11,7 @@ services:
 
 before_install:
   - sudo adduser ${USER} root
+  - sudo adduser ${USER} docker
 
 install:
   - export VENV=.venv
