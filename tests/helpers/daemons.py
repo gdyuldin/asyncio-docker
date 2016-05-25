@@ -11,6 +11,7 @@ from .env import (
     DOCKER_HOST,
     DOCKER_TLS_HOST,
     DOCKER_SOCKET,
+    DOCKER_DIND_IMAGE,
     SSL_DIR,
     SSL_MOUNT_DIR,
     TLS_CA_CERT,
@@ -21,10 +22,11 @@ from .env import (
 
 class DockerDaemon(object):
 
-    def __init__(self, host, tls_verify=False, tls_ca_cert=None,
+    def __init__(self, host, image=DOCKER_DIND_IMAGE, tls_verify=False, tls_ca_cert=None,
             tls_cert=None, tls_key=None):
 
         self._host = host
+        self._image = image
         self._tls_verify = tls_verify
         self._tls_ca_cert = tls_ca_cert
         self._tls_cert = tls_cert
@@ -60,7 +62,7 @@ class DockerDaemon(object):
             ])
 
         command.extend([
-            'docker:1.11.1-dind',
+            self._image,
             '-H',
             self._host
         ])

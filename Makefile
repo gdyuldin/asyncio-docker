@@ -32,7 +32,6 @@ install: generate-certs
 
 	$(VENV)/bin/pip install -r dev_requirements.txt
 	$(VENV)/bin/pip install -e .
-	sudo docker pull docker:1.11.1-dind
 
 
 test:
