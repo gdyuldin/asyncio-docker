@@ -1,11 +1,18 @@
 FQDN ?= localhost
 VENV ?= /home/vagrant/venv
 REPOSITORY ?= pypitest
+VERSION = $(shell $(VENV)/bin/python -c "from asyncio_docker import __version__; print(__version__);")
 
 release:
 	$(VENV)/bin/python setup.py sdist
 	$(VENV)/bin/twine register -r $(REPOSITORY) dist/*
 	$(VENV)/bin/twine upload -r $(REPOSITORY) dist/*
+
+test-release:
+	$(VENV)/bin/python setup.py sdist
+	virtualenv /tmp/venv -p python3.5
+	/tmp/venv/bin/pip install dist/asyncio-docker-$(VERSION).tar.gz
+	rm -r /tmp/venv
 
 
 generate-certs:
@@ -33,10 +40,6 @@ install: generate-certs
 
 	$(VENV)/bin/pip install -r dev_requirements.txt
 	$(VENV)/bin/pip install -e .
-
-
-version:
-	@$(VENV)/bin/python -c "from asyncio_docker import __version__; print(__version__);"
 
 
 test:
