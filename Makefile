@@ -35,4 +35,5 @@ install: generate-certs
 
 
 test:
+	docker version
 	sudo $(VENV)/bin/green

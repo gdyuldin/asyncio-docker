@@ -90,6 +90,7 @@ class DockerDaemon(object):
             raise unittest.SkipTest(stderr)
 
         self._container = stdout.decode().rstrip()
+        print(self._container)
 
         try:
             await asyncio.wait_for(self._wait_startup(), 10)
@@ -103,6 +104,7 @@ class DockerDaemon(object):
         while True:
             await asyncio.sleep(1)
             returncode, stdout, stderr = await self.call('info')
+            print(stdout, stderr)
             if returncode == 0:
                 break
 
