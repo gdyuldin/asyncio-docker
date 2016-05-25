@@ -9,9 +9,10 @@ python:
 services:
   - docker
 
+before_install:
+  - sudo useradd $USER root
+
 install:
-  - sudo adduser ${USER} docker
-  - sudo adduser ${USER} root
   - export VENV=.venv
   - make install
 

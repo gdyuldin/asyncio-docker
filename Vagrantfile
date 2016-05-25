@@ -11,6 +11,7 @@ EOF
 sudo apk update
 sudo apk add docker && \
   sudo adduser ${USER} docker
+  sudo adduser ${USER} root
   sudo service docker start
 
 sudo apk add make python3 && \

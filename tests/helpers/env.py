@@ -1,7 +1,6 @@
 import os.path
 from os import environ
 
-print(environ)
 def environ_get(key, default=None):
     return environ.get('TEST_%s' % key, default)
 
