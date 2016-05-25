@@ -23,6 +23,21 @@ sudo apk add make python3 && \
 cd /vagrant && \
     make install
 
+tee /home/vagrant/.pypirc > /dev/null <<EOF
+[distutils]
+index-servers =
+    pypi
+    pypitest
+
+[pypitest]
+repository = https://testpypi.python.org/pypi
+username = adaptivdesign
+
+[pypi]
+repository = https://pypi.python.org/pypi
+username = adaptivdesign
+EOF
+
 SCRIPT
 
 

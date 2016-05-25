@@ -1,10 +1,11 @@
 FQDN ?= localhost
 VENV ?= /home/vagrant/venv
+REPOSITORY ?= pypitest
 
 release:
 	$(VENV)/bin/python setup.py sdist
-	$(VENV)/bin/twine register dist/*
-	$(VENV)/bin/twine upload dist/*
+	$(VENV)/bin/twine register -r $(REPOSITORY) dist/*
+	$(VENV)/bin/twine upload -r $(REPOSITORY) dist/*
 
 
 generate-certs:
