@@ -114,15 +114,13 @@ class EventStream(RegistryUnbound):
 
     async def __anext__(self):
         chunk = await self._res.content.readany()
-        if chunk is not None:
-            try:
-                raw = json.loads(chunk.decode(encoding='UTF-8'))
-                return self.registry.Event(
-                    action=raw['Action'],
-                    type=raw['Type'],
-                    actor=raw['Actor'],
-                    time=raw['timeNano'],
-                    raw=raw,
-                )
-            except json.JSONDecodeError as ex:
-                raise StopAsyncIteration
+        chunk = chunk.decode() if chunk is not None else ''
+        if len(chunk) > 0:
+            raw = json.loads(chunk)
+            return self.registry.Event(
+                action=raw['Action'],
+                type=raw['Type'],
+                actor=raw['Actor'],
+                time=raw['timeNano'],
+                raw=raw
+            )

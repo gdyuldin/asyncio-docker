@@ -14,7 +14,6 @@ test-release:
 	/tmp/venv/bin/pip install dist/asyncio-docker-$(VERSION).tar.gz
 	rm -r /tmp/venv
 
-
 generate-certs:
 	mkdir -p "tests/ssl" && \
 			cd "tests/ssl" && \
@@ -32,7 +31,6 @@ generate-certs:
 		  	-CAcreateserial -out client.crt -extfile extfile.cnf  && \
 			rm -v client.csr server.csr extfile.cnf
 
-
 install: generate-certs
 	if [ ! -d "$(VENV)" ]; then  \
 		virtualenv $(VENV) -p python3.5; \
@@ -41,11 +39,9 @@ install: generate-certs
 	$(VENV)/bin/pip install -r dev_requirements.txt
 	$(VENV)/bin/pip install -e .
 
-
 test:
 	docker version
 	$(VENV)/bin/green -r
-
 
 serve-docs:
 	$(VENV)/bin/mkdocs serve -a 0.0.0.0:8080
