@@ -106,7 +106,10 @@ class EventStream(RegistryUnbound):
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
-        self._res.close()
+        if exc_type is None:
+            await self._res.release()
+        else:
+            self._res.close()
         del self._res
 
     async def __aiter__(self):
@@ -114,9 +117,8 @@ class EventStream(RegistryUnbound):
 
     async def __anext__(self):
         chunk = await self._res.content.readany()
-        chunk = chunk.decode() if chunk is not None else ''
-        if len(chunk) > 0:
-            raw = json.loads(chunk)
+        if chunk:
+            raw = json.loads(chunk.decode())
             return self.registry.Event(
                 action=raw['Action'],
                 type=raw['Type'],
@@ -124,3 +126,7 @@ class EventStream(RegistryUnbound):
                 time=raw['timeNano'],
                 raw=raw
             )
+        else:
+            # It is possible to start receiving empty chunks,
+            # endlessly.
+            raise StopAsyncIteration

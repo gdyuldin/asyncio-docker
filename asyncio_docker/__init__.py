@@ -1,6 +1,6 @@
 from .utils.version import get_version
 
 API_VERSION = (1, 23)
-VERSION = API_VERSION + (0, 'beta', 5)
+VERSION = API_VERSION + (0, 'beta', 6)
 
 __version__ = get_version(VERSION)
