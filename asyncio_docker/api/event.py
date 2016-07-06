@@ -1,8 +1,8 @@
 from asyncio_docker.registry import RegistryUnbound
 from asyncio_docker.collections import DataMapping
 
-from .errors import status_error
-from .constants.types import CONTAINER, IMAGE, NETWORK, VOLUME
+from .errors import APIError, status_error
+from .constants.event_types import CONTAINER, IMAGE, NETWORK, VOLUME
 
 import aiohttp
 import json
@@ -98,7 +98,7 @@ class EventStream(RegistryUnbound):
 
     async def __aenter__(self):
         if hasattr(self, '_res'):
-            raise Exception("Stream is in use.")
+            raise RuntimeError("Stream is in use.")
         res = await self._req
         if res.status != 200:
             raise await status_error(res)
@@ -127,6 +127,4 @@ class EventStream(RegistryUnbound):
                 raw=raw
             )
         else:
-            # It is possible to start receiving empty chunks,
-            # endlessly.
             raise StopAsyncIteration

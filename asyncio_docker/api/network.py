@@ -20,6 +20,10 @@ class Network(RegistryUnbound):
         self._raw = raw
 
     @property
+    def id(self):
+        return self._id
+
+    @property
     def data(self):
         return DataMapping(self._raw or {})
 
@@ -87,13 +91,15 @@ class Network(RegistryUnbound):
 
     @classmethod
     async def list(cls, names=None, ids=None, filters=None):
-        filters = filters or {}
+
+        f = {}
         if names is not None:
-            filters['names'] = names
+            f['names'] = names
 
         if ids is not None:
-            filters['ids'] = ids
+            f['ids'] = ids
 
+        filters = dict(f, **(filters or {}))
         q = {}
         if filters:
             q['filters'] = filters
@@ -105,10 +111,6 @@ class Network(RegistryUnbound):
             return [
                 cls(raw['Id'], raw=raw) for raw in await res.json()
             ]
-
-    @property
-    def id(self):
-        return self._id
 
     def __hash__(self):
         return hash(self.id)

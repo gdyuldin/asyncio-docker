@@ -21,12 +21,12 @@ class Container(RegistryUnbound):
         self._raw = raw
 
     @property
-    def data(self):
-        return DataMapping(self._raw or {})
-
-    @property
     def id(self):
         return self._id
+
+    @property
+    def data(self):
+        return DataMapping(self._raw or {})
 
     async def top(self):
         req = self.client.get(build_url(PREFIX, self.id, 'top'))
@@ -94,7 +94,7 @@ class Container(RegistryUnbound):
             attach_stderr=True, tty=False, detach_keys='ctrl-c'):
 
         data = {
-            'Cmd': [str(x) for x in cmd],
+            'Cmd': [str(arg) for arg in cmd],
             'AttachStdin': attach_stdin,
             'AttachStdout': attach_stdout,
             'AttachStderr': attach_stderr,
@@ -142,12 +142,13 @@ class Container(RegistryUnbound):
 
     @classmethod
     async def list(cls, all=None, labels=None, filters=None):
-        filters = filters or {}
+        f = {}
         for label, val in (labels or {}).items():
-            filters['label'] = filters.get('label', []) + [
+            f['label'] = f.get('label', []) + [
                 '%s=%s' % (label, val) if val else label
             ]
 
+        filters = dict(f, **(filters or {}))
         q = {}
         if filters:
             q['filters'] = filters

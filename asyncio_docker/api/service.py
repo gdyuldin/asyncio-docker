@@ -3,46 +3,71 @@ from asyncio_docker.collections import DataMapping
 from asyncio_docker.utils.url import build_url
 
 from .errors import status_error
-from .constants.schemas import VOLUME_CONFIG
+from .constants.schemas import SERVICE_CONFIG
 from .constants.http import APPLICATION_JSON
 
 from aiohttp.hdrs import CONTENT_TYPE
+from jsonschema import validate, ValidationError
 import json
 
 
-PREFIX = 'volumes'
+PREFIX = 'services'
 
 
-class Volume(RegistryUnbound):
+class Service(RegistryUnbound):
 
-    def __init__(self, name, raw=None):
-        self._name = name
+    def __init__(self,  id, raw=None):
+        self._id = id
         self._raw = raw
 
     @property
-    def name(self):
-        return self._name
+    def id(self):
+        return self._id
 
     @property
     def data(self):
         return DataMapping(self._raw or {})
 
     async def inspect(self):
-        req = self.client.get(build_url(PREFIX, self.name))
+        req = self.client.get(build_url(PREFIX, self.id))
         async with req as res:
             if res.status != 200:
                 raise await status_error(res)
             return DataMapping(await res.json())
 
-    async def remove(self):
-        req = self.client.delete(build_url(PREFIX, self.name))
+    async def update(self, config, version=None):
+        validate(config, SERVICE_CONFIG)
+        if version is None:
+            try:
+                version = self.data.version.index
+            except AttributeError:
+                raise ValueError("version")
+
+        q = {
+            'version': version
+        }
+
+        req = self.client.post(
+            build_url(PREFIX, self.id, 'update', **q),
+            headers={
+                CONTENT_TYPE: APPLICATION_JSON
+            },
+            data=json.dumps(config)
+        )
+
         async with req as res:
-            if res.status != 204:
+            if res.status != 200:
+                raise await status_error(res)
+
+    async def remove(self):
+        req = self.client.delete(build_url(PREFIX, self.id))
+        async with req as res:
+            if res.status != 200:
                 raise await status_error(res)
 
     @classmethod
     async def create(cls, config):
-        validate(config, VOLUME_CONFIG)
+        validate(config, SERVICE_CONFIG)
 
         req = cls.client.post(
             build_url(PREFIX, 'create'),
@@ -57,14 +82,16 @@ class Volume(RegistryUnbound):
                 raise await status_error(res)
 
             raw = await(res.json())
-            return cls(raw['Name'], raw=raw)
+            return cls(raw['ID'], raw=raw)
 
     @classmethod
-    async def list(cls, dangling=False, filters=None):
+    async def list(cls, id=None, name=None, filters=None):
 
         f = {}
-        if dangling:
-            f['dangling'] = True
+        if id is not None:
+            f['id'] = or_filter(id)
+        if name is not None:
+            f['name'] = or_filter(name)
 
         filters = dict(f, **(filters or {}))
         q = {}
@@ -76,25 +103,24 @@ class Volume(RegistryUnbound):
             if res.status != 200:
                 raise await status_error(res)
             return [
-                cls(raw['Name'], raw=raw)
-                for raw in ((await res.json()).get('Volumes', None) or [])
+                cls(raw['ID'], raw=raw) for raw in await res.json()
             ]
 
     def __hash__(self):
-        return hash(self.name)
+        return hash(self.id)
 
     def __eq__(self, other):
-        if isinstance(other, Volume):
-            return self.name == other.name
+        if isinstance(other, Service):
+            return self.id == other.id
         return NotImplemented
 
     def __ne__(self, other):
-        if isinstance(other, Volume):
-            return self.name != other.name
+        if isinstance(other, Service):
+            return self.id != other.id
         return NotImplemented
 
     def __repr__(self):
-        return 'Volume <%s>' % self.name
+        return 'Service <%s>' % self.id
 
     def __str__(self):
-        return self.name
+        return self.id

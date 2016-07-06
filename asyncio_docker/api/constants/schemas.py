@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from .statuses import (
+from .container_statuses import (
     CREATED,
     RUNNING,
     EXITED,
@@ -31,43 +31,43 @@ STRING_MAP = {
 
 HOST_CONFIG = {
     'type': 'object',
-    'properties': {
-        'NetworkMode': {
+    'properties': OrderedDict([
+        ('NetworkMode', {
             'type': 'string',
             'default': 'default'
-        },
-        'Binds': {
+        }),
+        ('Binds', {
             'type': 'array',
             'items': {
                 'type': 'string'
             },
-        }
-    },
+        })
+    ]),
     'additionalProperties': False
 }
 
 
 IPAM_CONFIG = {
     'type': 'object',
-    'properties': {
-        'Subnet': {
+    'properties': OrderedDict([
+        ('Subnet', {
             'type': 'string'
-        },
-        'IPRange': {
+        }),
+        ('IPRange', {
             'type': 'string'
-        },
-        'Gateway': {
+        }),
+        ('Gateway', {
             'type': 'string'
-        },
-        'AuxAddress': {
+        }),
+        ('AuxAddress', {
             'type': 'object',
             'patternProperties': {
                 '^': {
                     'type': 'string'
                 }
             }
-        },
-    }
+        })
+    ])
 }
 
 
@@ -192,23 +192,23 @@ CONTAINER_CONFIG = {
 
 NETWORK_CONFIG = {
     'type': 'object',
-    'properties': {
-        'Name': {
+    'properties': OrderedDict([
+        ('Name', {
             'type': 'string'
-        },
-        'Driver': {
+        }),
+        ('Driver', {
             'type': 'string'
-        },
-        'IPAM': IPAM_CONFIG,
-        'Internal': {
+        }),
+        ('IPAM', IPAM_CONFIG),
+        ('Internal', {
             'type': 'boolean'
-        },
-        'CheckDuplicate': {
+        }),
+        ('CheckDuplicate', {
             'type': 'boolean'
-        },
-        'Labels': STRING_MAP,
-        'Options': STRING_MAP
-    },
+        }),
+        ('Labels', STRING_MAP),
+        ('Options', STRING_MAP)
+    ]),
     'additionalProperties': False,
     'required': [
         'Name'
@@ -218,17 +218,146 @@ NETWORK_CONFIG = {
 
 VOLUME_CONFIG = {
     'type': 'object',
-    'properties': {
-        'Name': {
+    'properties': OrderedDict([
+        ('Name', {
             'type': 'string'
-        },
-        'Driver': {
+        }),
+        ('Driver', {
             'type': 'string'
-        },
-        'DriverOpts': {
+        }),
+        ('DriverOpts', {
             'type': 'object'
-        },
-        'Labels': STRING_MAP
-    },
+        }),
+        ('Labels', STRING_MAP)
+    ]),
+    'additionalProperties': False
+}
+
+
+MOUNT = {
+    'type': 'object',
+    'properties': OrderedDict([
+        ('Type', {
+            'type': 'string',
+            'choices': ['volume', 'mount']
+        }),
+        ('Source', {
+            'type': 'string'
+        }),
+        ('Target', {
+            'type': 'string'
+        }),
+        ('ReadOnly', {
+            'type': 'boolean'
+        }),
+        ('BindOptions', {
+            'type': 'object',
+            'properties': OrderedDict([
+
+            ])
+        }),
+        ('VolumeOptions', {
+            'type': 'object',
+            'properties': OrderedDict([
+
+            ])
+        })
+    ]),
+    'additionalProperties': False
+}
+
+
+CONTAINER_SPEC = {
+    'type': 'object',
+    'properties': OrderedDict([
+        ('Image', {
+            'type': 'string',
+        }),
+        ('Command', {
+            'type': 'array',
+            'items': {
+                'type': 'string'
+            },
+        }),
+        ('Args', {
+            'type': 'array',
+            'items': {
+                'type': 'string'
+            },
+        }),
+        ('Env', {
+            'type': 'array',
+            'items': {
+                'type': 'string'
+            },
+        }),
+        ('Dir', {
+            'type': 'string',
+        }),
+        ('User', {
+            'type': 'string',
+        }),
+        ('Labels', STRING_MAP),
+        ('Mounts', {
+            'type': 'array',
+            'items': MOUNT
+        }),
+
+    ]),
+    'additionalProperties': False,
+    'required': [
+        'Image'
+    ]
+}
+
+
+RESOURCE = {
+    'type': 'object',
+    'properties': OrderedDict([
+        ('NanoCPUs', {
+            'type': 'number',
+        }),
+        ('MemoryBytes', {
+            'type': 'number',
+        }),
+    ])
+}
+
+
+TASK_TEMPLATE = {
+    'type': 'object',
+    'properties': OrderedDict([
+        ('ContainerSpec', CONTAINER_SPEC),
+        ('Resources', {
+            'type': 'object',
+            'properties': OrderedDict([
+                ('Limits', RESOURCE),
+                ('Reservations', RESOURCE),
+            ])
+        }),
+    ]),
+    'additionalProperties': False,
+    'required': [
+        'ContainerSpec'
+    ]
+}
+
+
+SERVICE_CONFIG = {
+    'type': 'object',
+    'properties': OrderedDict([
+        ('Name', {
+            'type': 'string'
+        }),
+        ('Labels', STRING_MAP),
+        ('TaskTemplate', TASK_TEMPLATE),
+        ('Mode', {
+            'type': 'string',
+            'choices': [
+                'replicated',
+                'global'
+            ]
+        }),
+    ]),
     'additionalProperties': False
 }

@@ -5,7 +5,10 @@ from . import (
     network,
     volume,
     event,
-    exec
+    exec,
+    node,
+    service,
+    task
 )
 
 from asyncio_docker.registry import Registry as RemoteAPI

@@ -13,16 +13,20 @@ PREFIX = 'images'
 
 class Image(RegistryUnbound):
 
-    def __init__(self, name, raw=None):
-        self._name = name
+    def __init__(self, id, raw=None):
+        self._id = id
         self._raw = raw
+
+    @property
+    def id(self):
+        return self._id
 
     @property
     def data(self):
         return DataMapping(self._raw or {})
 
     async def inspect(self):
-        req = self.client.get(build_url(PREFIX, self.name, 'json'))
+        req = self.client.get(build_url(PREFIX, self.id, 'json'))
         async with req as res:
             if res.status != 200:
                 raise await status_error(res)
@@ -35,7 +39,7 @@ class Image(RegistryUnbound):
             'force': '1' if force else '0'
         }
 
-        req = self.client.delete(build_url(PREFIX, self.name, **q))
+        req = self.client.delete(build_url(PREFIX, self.id, **q))
         async with req as res:
             if res.status != 200:
                 raise await status_error(res)
@@ -79,16 +83,16 @@ class Image(RegistryUnbound):
     async def list(cls, all=None, labels=None, dangling=False, filters=None,
             filter=None):
 
-        filters = filters or {}
-
+        f = {}
         for label, val in (labels or {}).items():
-            filters['label'] = filters.get('label', []) + [
+            f['label'] = f.get('label', []) + [
                 '%s=%s' % (label, val) if val else label
             ]
 
         if dangling:
-            filters['dangling'] = ['true']
+            f['dangling'] = ['true']
 
+        filters = dict(f, **(filters or {}))
         q = {}
         if filters:
             q['filters'] = filters
@@ -107,31 +111,21 @@ class Image(RegistryUnbound):
                 cls(raw['Id'], raw=raw) for raw in await res.json()
             ]
 
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def is_dangling(self):
-        if 'repo_tags' in self.data:
-            return '<none>:<none>' in self.data.repo_tags
-        return False
-
     def __hash__(self):
-        return hash(self.name)
+        return hash(self.id)
 
     def __eq__(self, other):
         if isinstance(other, Image):
-            return self.name == other.name
+            return self.id == other.id
         return NotImplemented
 
     def __ne__(self, other):
         if isinstance(other, Image):
-            return self.name != other.name
+            return self.id != other.id
         return NotImplemented
 
     def __repr__(self):
-        return 'Image <%s>' % self.name
+        return 'Image <%s>' % self.id
 
     def __str__(self):
-        return self.name
+        return self.id

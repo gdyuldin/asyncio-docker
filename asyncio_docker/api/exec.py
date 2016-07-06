@@ -22,6 +22,10 @@ class ExecInstance(RegistryUnbound):
         self._raw = raw
 
     @property
+    def id(self):
+        return self._id
+
+    @property
     def data(self):
         return DataMapping(self._raw or {})
 
@@ -41,10 +45,6 @@ class ExecInstance(RegistryUnbound):
         )
 
         return self.registry.ExecStream(req, tty=tty)
-
-    @property
-    def id(self):
-        return self._id
 
     def __hash__(self):
         return hash(self.id)
@@ -74,7 +74,7 @@ class ExecStream(RegistryUnbound):
 
     async def __aenter__(self):
         if hasattr(self, '_res'):
-            raise Exception("Stream is in use.")
+            raise RuntimeError("Stream is in use.")
         res = await self._req
         if res.status != 200:
             raise await status_error(res)
