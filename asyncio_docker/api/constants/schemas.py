@@ -359,5 +359,8 @@ SERVICE_CONFIG = {
             ]
         }),
     ]),
-    'additionalProperties': False
+    'additionalProperties': False,
+    'required': [
+        'TaskTemplate'
+    ]
 }
