@@ -7,7 +7,7 @@ from .constants.schemas import SERVICE_CONFIG
 from .constants.http import APPLICATION_JSON
 
 from aiohttp.hdrs import CONTENT_TYPE
-from jsonschema import validate, ValidationError
+from jsonschema import validate
 import json
 
 
