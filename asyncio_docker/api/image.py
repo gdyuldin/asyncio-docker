@@ -45,6 +45,52 @@ class Image(RegistryUnbound):
                 raise await status_error(res)
 
     @classmethod
+    async def build(cls, data, t, dockerfile=None, remote=None, q=False, nocache=False, pull=False, rm=True, forcerm=False, memory=None, memswap=None, cpushares=None, cpusetcpus=None, cpuperiod=None, cpuquota=None, buildargs=None, shmsize=None, labels=()):
+
+        q = {'t': t, 'q': q, 'nocache': nocache, 'pull': pull, 'rm': rm, 'forcerm': forcerm}
+
+        if dockerfile is not None:
+            q['dockerfile'] = dockerfile
+        if len(labels) > 0:
+            q['labels'] = labels
+        if remote is not None:
+            q['remote'] = remote
+        if memory is not None:
+            q['memory'] = memory
+        if memswap is not None:
+            q['memswap'] = memswap
+        if cpushares is not None:
+            q['cpushares'] = cpushares
+        if cpusetcpus is not None:
+            q['cpusetcpus'] = cpusetcpus
+        if cpuperiod is not None:
+            q['cpuperiod'] = cpuperiod
+        if cpuquota is not None:
+            q['cpuquota'] = cpuquota
+        if buildargs is not None:
+            q['buildargs'] = buildargs
+        if shmsize is not None:
+            q['shmsize'] = shmsize
+
+        req = cls.client.post(
+            build_url('build', **q), data=data
+        )
+        async with req as res:
+            if res.status != 200:
+                raise await status_error(res)
+
+            # Wait till full response is available
+            data = (await res.text()).splitlines()
+            if data:
+                # Check last status, make sure it has no error
+                last_status = json.loads(data[-1])
+                if 'error' in last_status:
+                    raise APIError(last_status['error'])
+
+            images = await cls.list(filter=t)
+            return images[0]
+
+    @classmethod
     async def create(cls, from_image=None, from_src=None, repo=None, tag=None):
 
         if (from_image is None and from_src is None or from_image is not None
