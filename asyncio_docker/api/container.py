@@ -145,6 +145,16 @@ class Container(RegistryUnbound):
 
             return DataMapping(await res.json())
 
+    async def put_archive(self, path, data):
+        req = self.client.put(
+            build_url(PREFIX, self.id, 'archive', path=path),
+            data=data
+        )
+
+        async with req as res:
+            if res.status != 200:
+                raise await status_error(res)
+
     @classmethod
     async def create(cls, config, name=None):
         validate(config, CONTAINER_CONFIG)
