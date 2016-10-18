@@ -117,6 +117,24 @@ class Container(RegistryUnbound):
             raw = await(res.json())
             return self.registry.ExecInstance(raw['Id'], raw=raw)
 
+    async def logs(self, stdout=False, stderr=False, tail='all'):
+        q = {
+            'stdout': stdout,
+            'stderr': stderr,
+            'tail': tail
+        }
+
+        req = self.client.get(
+            build_url(PREFIX, self.id, 'logs', **q),
+        )
+
+        async with req as res:
+            if res.status != 200:
+                raise await status_error(res)
+
+            logs = await(res.text())
+            return logs
+
     @classmethod
     async def create(cls, config, name=None):
         validate(config, CONTAINER_CONFIG)
