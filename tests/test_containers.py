@@ -1,3 +1,6 @@
+from io import BytesIO
+import pathlib
+import tarfile
 import unittest
 
 from nose_parameterized import parameterized
@@ -17,15 +20,13 @@ async def run_containers(case, names):
 
 
 @aio.run_until_complete()
-async def run_container_with_logs(case, data):
-    cmd = "echo {stdout}; (>&2 echo {stderr})".format(**data)
+async def run_container_with_cmd(case, cmd):
     await case.daemon.call('run', '-d', '--name', 'foo', TEST_IMAGE, 'sh',  '-c', cmd)
 
 
 @aio.run_until_complete()
-async def run_container_with_sleep(case, data):
-    cmd = "sleep {timeout}".format(**data)
-    await case.daemon.call('run', '-d', '--name', 'foo', TEST_IMAGE, 'sh',  '-c', cmd)
+async def create_container(case):
+    await case.daemon.call('create', '--name', 'foo', TEST_IMAGE, 'ls', '/tmp')
 
 
 class ContainerTestCase(unittest.TestCase):
@@ -49,23 +50,40 @@ class ContainerTestCase(unittest.TestCase):
             self.assertIn(container.data.names[0][1:], names)
 
     @parameterized.expand([
-        ({'stdout': 'foo', 'stderr': 'bar'},),
+        ("echo 'foo'; (>&2 echo 'bar')",),
     ])
-    @fixture.from_callable(run_container_with_logs)
+    @fixture.from_callable(run_container_with_cmd)
     @aio.run_until_complete()
-    async def test_logs(self, data):
-        containers = await self.api.Container.list(all=True,
-                                                   filters={'name': ['foo']})
-        container = containers[0]
+    async def test_logs(self, cmd):
+        container = (await self.api.Container.list(all=True,
+                                                   filters={'name': ['foo']}))[0]
         stdout = await container.logs(stdout=True)
-        self.assertIn(data['stdout'], stdout.decode())
+        self.assertIn('foo', stdout.decode())
         stderr = await container.logs(stderr=True)
-        self.assertIn(data['stderr'], stderr.decode())
+        self.assertIn('bar', stderr.decode())
+
+
+    @fixture.from_callable(create_container)
+    @aio.run_until_complete()
+    async def test_put_archive(self):
+        container = (await self.api.Container.list(all=True,
+                                                   filters={'name': ['foo']}))[0]
+        buf = BytesIO()
+        cur_file = pathlib.Path(__file__)
+        content_dir = str(cur_file.parent)
+        with tarfile.open(fileobj=buf, mode='w') as tar:
+            tar.add(content_dir, '')
+        buf.seek(0)
+        await container.put_archive('/tmp', buf)
+        await self.daemon.call('start', container.id)
+        await self.daemon.call('wait', container.id)
+        _, stdout, _ = await self.daemon.call('logs', container.id)
+        self.assertIn(cur_file.name, stdout.decode())
 
     @parameterized.expand([
-        ({'timeout': '5'},),
+        ("sleep 5",),
     ])
-    @fixture.from_callable(run_container_with_sleep)
+    @fixture.from_callable(run_container_with_cmd)
     @aio.run_until_complete()
     async def test_wait(self, data):
         containers = await self.api.Container.list(all=True,
