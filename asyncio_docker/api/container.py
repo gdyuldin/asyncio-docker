@@ -135,6 +135,17 @@ class Container(RegistryUnbound):
             logs = await(res.text())
             return logs
 
+    async def wait(self):
+        req = self.client.post(
+            build_url(PREFIX, self.id, 'wait'),
+        )
+
+        async with req as res:
+            if res.status != 200:
+                raise await status_error(res)
+
+            return DataMapping(await res.json())
+
     @classmethod
     async def create(cls, config, name=None):
         validate(config, CONTAINER_CONFIG)

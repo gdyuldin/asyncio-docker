@@ -23,6 +23,12 @@ async def run_container_with_logs(case, data):
     await case.daemon.call('run', '-d', '--name', 'foo', TEST_IMAGE, 'sh',  '-c', cmd)
 
 
+@aio.run_until_complete()
+async def run_container_with_sleep(case, data):
+    cmd = "sleep {timeout}".format(**data)
+    await case.daemon.call('run', '-d', '--name', 'foo', TEST_IMAGE, 'sh',  '-c', cmd)
+
+
 class ContainerTestCase(unittest.TestCase):
 
     @aio.run_until_complete()
@@ -43,7 +49,6 @@ class ContainerTestCase(unittest.TestCase):
         for container in containers:
             self.assertIn(container.data.names[0][1:], names)
 
-
     @parameterized.expand([
         ({'stdout': 'foo', 'stderr': 'bar'},),
     ])
@@ -59,6 +64,21 @@ class ContainerTestCase(unittest.TestCase):
         self.assertIn(data['stderr'], stderr)
 
 
+    @parameterized.expand([
+        ({'timeout': '5'},),
+    ])
+    @fixture.from_callable(run_container_with_sleep)
+    @aio.run_until_complete()
+    async def test_wait(self, data):
+        containers = await self.api.Container.list(all=True,
+                                                   filters={'name': ['foo']})
+        container = containers[0]
+        container_data = await container.inspect()
+        self.assertTrue(container_data['State']['Running'])
+        result = await container.wait()
+        self.assertEqual(result.status_code, 0)
+        container_data = await container.inspect()
+        self.assertFalse(container_data['State']['Running'])
 
     @aio.run_until_complete()
     async def tearDown(self):
