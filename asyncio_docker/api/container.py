@@ -132,8 +132,7 @@ class Container(RegistryUnbound):
             if res.status != 200:
                 raise await status_error(res)
 
-            logs = await(res.text())
-            return logs
+            return await res.read()
 
     async def wait(self):
         req = self.client.post(

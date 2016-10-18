@@ -1,5 +1,4 @@
 import unittest
-import asyncio
 
 from nose_parameterized import parameterized
 
@@ -59,10 +58,9 @@ class ContainerTestCase(unittest.TestCase):
                                                    filters={'name': ['foo']})
         container = containers[0]
         stdout = await container.logs(stdout=True)
-        self.assertIn(data['stdout'], stdout)
+        self.assertIn(data['stdout'], stdout.decode())
         stderr = await container.logs(stderr=True)
-        self.assertIn(data['stderr'], stderr)
-
+        self.assertIn(data['stderr'], stderr.decode())
 
     @parameterized.expand([
         ({'timeout': '5'},),
