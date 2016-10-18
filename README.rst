@@ -8,3 +8,13 @@ Asynchronous docker client for python.
 
 .. image:: https://codecov.io/gh/adaptivdesign/asyncio-docker/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/adaptivdesign/asyncio-docker
+
+
+Testing
+=======
+
+.. code-block:: bash
+
+    export VENV=./.venv
+    make install
+    make test
