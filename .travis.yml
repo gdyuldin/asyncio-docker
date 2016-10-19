@@ -20,10 +20,11 @@ script:
   - sudo -E make test
 
 after_success:
+  - pip install coverage
   - bash <(curl -s https://codecov.io/bash)
 
 deploy:
-  
+
     # test pypi
   - provider: pypi
     distributions: sdist
