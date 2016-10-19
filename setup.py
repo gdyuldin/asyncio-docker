@@ -1,12 +1,12 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='asyncio-docker',
+    name='asyncio-docker2',
     version=__import__('asyncio_docker').get_version(),
     url='https://github.com/adaptivdesign/asyncio-docker',
-    author='Raymond Reggers - Adaptiv Design',
-    author_email='raymond@adaptiv.nl',
-    description=('Asyncio Docker Client'),
+    author='Georgy Dyuldin (Fork author)',
+    author_email='g.dyuldin@gmail.com',
+    description=('Asyncio Docker Client (Fork)'),
     license='Apache Software License',
     packages=find_packages(),
     zip_safe=False,
